@@ -17,6 +17,11 @@ public class Constant {
      * TessBaseAPI初始化用到的第一个参数，是个目录。
      */
     public static final String DATAPATH = Environment.getExternalStorageDirectory().getAbsolutePath()+ File.separator+"zlTranslate";
+
+    /**
+     * 下载的地址
+     */
+    public static final String DOWNLOAD_PATH = DATAPATH+File.separator+"downLoad";
     /**
      * 在DATAPATH中新建这个目录，TessBaseAPI初始化要求必须有这个目录。
      */

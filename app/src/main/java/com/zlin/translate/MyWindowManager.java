@@ -4,6 +4,7 @@ package com.zlin.translate;
  * Created by zhanglin03 on 2018/12/26.
  */
 import java.lang.reflect.Method;
+import java.util.List;
 
 import android.annotation.TargetApi;
 import android.app.ActivityManager;
@@ -16,6 +17,8 @@ import android.view.Gravity;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
 import android.widget.ImageView;
+
+import me.wangyuwei.flipshare.FlipShareView;
 
 public class MyWindowManager {
 
@@ -38,6 +41,7 @@ public class MyWindowManager {
 
     private static FloatWindowView.OnSuspensionViewClickListener myListener;
 
+
     /**
      * 这里是给调用者设置的一个点击监听的代理
      * @param listener
@@ -45,6 +49,7 @@ public class MyWindowManager {
     public static void setOnSuspensionViewClickListlistenerener(FloatWindowView.OnSuspensionViewClickListener listener){
         myListener = listener;
     }
+
 
     /**
      * 创建一个悬浮窗。初始位置为屏幕的右部中间位置。
@@ -104,6 +109,12 @@ public class MyWindowManager {
         if(floatWindow != null){
             floatWindow.setTranslateText(text);
         }
+    }
+/**
+     * 设置ocr 及翻译文字
+     */
+    public static void setMenu(List<String> listString, FlipShareView.OnFlipClickListener flipClickListener){
+        floatWindow.setonMenu(listString,flipClickListener);
     }
 
 

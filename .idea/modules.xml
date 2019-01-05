@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/libs/FlipShare/FlipShare.iml" filepath="$PROJECT_DIR$/libs/FlipShare/FlipShare.iml" />
       <module fileurl="file://$PROJECT_DIR$/Translate.iml" filepath="$PROJECT_DIR$/Translate.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/libs/libs.iml" filepath="$PROJECT_DIR$/libs/libs.iml" />

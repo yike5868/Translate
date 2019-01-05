@@ -129,6 +129,10 @@ public class SaveTask extends AsyncTask<Image, Void, Bitmap> {
     // 输出目录
     private String createFile() {
         String outDir = Constant.PIC_PATH;
+        File filedir = new File(outDir);
+        if(!filedir.exists()){
+            filedir.mkdirs();
+        }
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US);
         String date = simpleDateFormat.format(new Date());
         return outDir+ File.separator + date + ".png";

@@ -2,6 +2,7 @@ package com.zlin.translate;
 
 import android.app.Application;
 
+import com.umeng.commonsdk.UMConfigure;
 import com.zlin.tools.CrashHandler;
 
 /**
@@ -19,5 +20,6 @@ public class TranslateApp extends Application {
         super.onCreate();
         mInstance = this;
         CrashHandler.getInstance().init(this);
+        UMConfigure.init(this, "5c2db7acb465f5d63e000079", "Ten", UMConfigure.DEVICE_TYPE_PHONE, null);
     }
 }

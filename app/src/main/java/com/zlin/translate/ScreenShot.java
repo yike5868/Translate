@@ -14,6 +14,7 @@ import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.view.Surface;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 /**
  * Created by zhanglin03 on 2018/11/28.
@@ -31,14 +32,20 @@ public class ScreenShot {
     private static ImageReader imageReader;
     public static Surface surface;
 
+
+
     public static void setUpMediaProjection(Activity activity, Intent scIntent) {
         if (scIntent == null) {
             Intent intent = new Intent(Intent.ACTION_MAIN);
             intent.addCategory(Intent.CATEGORY_LAUNCHER);
             activity.startActivity(intent);
         } else {
-            mediaProjection = getMediaProjectionManager(activity).getMediaProjection(Activity.RESULT_OK,
-                    scIntent);
+            try {
+                mediaProjection = getMediaProjectionManager(activity).getMediaProjection(Activity.RESULT_OK,
+                        scIntent);
+            }catch (Exception e){
+                Toast.makeText(activity.getBaseContext(),"请稍等，正在努力翻译",Toast.LENGTH_SHORT).show();
+            }
         }
     }
 

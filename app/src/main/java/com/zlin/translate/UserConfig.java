@@ -6,11 +6,11 @@ package com.zlin.translate;
 
 public class UserConfig {
     public static final String baiduUrl = "https://fanyi-api.baidu.com/api/trans/vip/translate";
-    public static int x;
-    public static int y;
-    public static int width;
-    public static int higth;
-    public static int titleHeight;//状态栏高度
-    public static int orientation;//屏幕方向
+    public static Integer x;
+    public static Integer y;
+    public static Integer width;
+    public static Integer higth;
+    public static Integer titleHeight;//状态栏高度
+    public static Integer orientation;//屏幕方向
 
 }
