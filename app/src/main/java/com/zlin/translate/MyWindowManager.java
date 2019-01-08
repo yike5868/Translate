@@ -13,6 +13,9 @@ import android.content.Context;
 import android.graphics.PixelFormat;
 import android.os.Binder;
 import android.os.Build;
+import android.support.annotation.ColorInt;
+import android.support.annotation.FloatRange;
+import android.support.annotation.IntRange;
 import android.view.Gravity;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
@@ -114,8 +117,11 @@ public class MyWindowManager {
      * 设置ocr 及翻译文字
      */
     public static void setMenu(List<String> listString, FlipShareView.OnFlipClickListener flipClickListener){
+        if(floatWindow!=null)
         floatWindow.setonMenu(listString,flipClickListener);
     }
+
+
 
 
     /**
@@ -212,6 +218,22 @@ public class MyWindowManager {
         } else {
         }
         return false;
+    }
+
+    public static void setTextColor(@ColorInt int color){
+        floatWindow.setTextColor(color);
+    }
+
+    public static void setTextAlpha(@FloatRange(from=0.0, to=1.0) float alpha){
+        floatWindow.setTextAlpha(alpha);
+    }
+
+    public static void setBackgroundColor(@ColorInt int color){
+        floatWindow.setBackgroundColor(color);
+    }
+
+    public static void setBackgroundAlpha(@FloatRange(from=0,to=1.0) float alpha){
+        floatWindow.setBackgroundAlpha(alpha);
     }
 }
 

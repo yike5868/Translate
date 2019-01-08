@@ -51,4 +51,9 @@ public class Constant {
      * 权限请求值
      */
     public static final int PERMISSION_REQUEST_CODE=0;
+
+    /**
+     * 设置保存的数据
+     */
+    public static final String SET_SAVE_DATE = "setSaveDate";
 }

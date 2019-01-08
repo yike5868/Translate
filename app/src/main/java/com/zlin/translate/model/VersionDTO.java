@@ -22,6 +22,15 @@ public class VersionDTO extends BaseModel {
         private String versionPath;
         private String type;
         private String message;
+        private boolean must;
+
+        public boolean isMust() {
+            return must;
+        }
+
+        public void setMust(boolean must) {
+            this.must = must;
+        }
 
         public String getId() {
             return id;

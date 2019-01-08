@@ -45,6 +45,7 @@ import com.umeng.analytics.MobclickAgent;
 import com.zlin.tools.Url;
 import com.zlin.tools.baidu.TransApi;
 import com.zlin.tools.baidu.TranslateBaiduDTO;
+import com.zlin.translate.activity.SetActivity;
 import com.zlin.translate.model.VersionDTO;
 import com.zlin.translate.netUtils.BaseCallBack;
 import com.zlin.translate.netUtils.BaseOkHttpClient;
@@ -65,7 +66,7 @@ import me.wangyuwei.flipshare.FlipShareView;
 import okhttp3.Call;
 
 public class MainActivity extends BaseActivity implements View.OnClickListener {
-    Button btn_show, btn_hide,btn_share;
+    Button btn_show, btn_hide,btn_share,btn_menu;
     TextView tv_hit;
     Intent permissintent;
     boolean showFloatWindow = true;
@@ -90,7 +91,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
         initAccessTokenWithAkSk();
         getTitleHeight();
-        FileUtils.copyToSD(getApplicationContext(), Constant.LANGUAGE_PATH, Constant.DEFAULT_LANGUAGE_NAME);
+        getVersion();
+//        FileUtils.copyToSD(getApplicationContext(), Constant.LANGUAGE_PATH, Constant.DEFAULT_LANGUAGE_NAME);
     }
 
 
@@ -102,13 +104,15 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     }
 
     public void initView() {
-        btn_hide = (Button) findViewById(R.id.btn_hide);
-        btn_show = (Button) findViewById(R.id.btn_show);
+        btn_hide = findViewById(R.id.btn_hide);
+        btn_show = findViewById(R.id.btn_show);
         btn_share = findViewById(R.id.btn_share);
+        btn_menu = findViewById(R.id.btn_menu);
         tv_hit = findViewById(R.id.tv_hit);
         btn_show.setOnClickListener(this);
         btn_hide.setOnClickListener(this);
         btn_share.setOnClickListener(this);
+        btn_menu.setOnClickListener(this);
     }
 
     Handler myHandler = new Handler() {
@@ -200,6 +204,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 break;
             case R.id.btn_share:
                 shareApp();
+                break;
+            case R.id.btn_menu:
+                showDis();
+                Intent intent1 = new Intent(MainActivity.this, SetActivity.class);
+                startActivity(intent1);
                 break;
 
         }
@@ -332,7 +341,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         super.onResume();
         if (permissintent == null)
             requestCapturePermission();
-        getVersion();
+
         getOrientation();
     }
 
@@ -524,7 +533,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                     @Override
                     public void onSuccess(VersionDTO o) {
                         if(Utils.getVerCode(MainActivity.this)<o.getData().getVersionCode()){
-                            showInputDialog(o.getData().getMessage(),o.getData().getVersionPath());
+                            showInputDialog(o);
 //                            showDownloadProgressDialog(o.getData().getVersionPath());
                         }
 //                        Toast.makeText(MainActivity.this, "成功：" + o.getData().getMessage(), Toast.LENGTH_SHORT).show();
@@ -542,22 +551,36 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 });
     }
 
-    private void showInputDialog(String text,final String path) {
+    private void showInputDialog(final VersionDTO o) {
     /*@setView 装入一个EditView
      */
+    if(o == null||o.isHasErrors()){
+        return;
+    }
         final TextView textView = new TextView(MainActivity.this);
-        textView.setText(text);
+        textView.setText(o.getData().getMessage());
         AlertDialog.Builder inputDialog =
                 new AlertDialog.Builder(MainActivity.this);
         inputDialog.setTitle("升级").setView(textView);
-        inputDialog.setCancelable(false);
-        inputDialog.setPositiveButton("确定",
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        showDownloadProgressDialog(path);
-                    }
-                }).show();
+        if(o.getData().isMust()) {
+            inputDialog.setCancelable(false);
+            inputDialog.setPositiveButton("确定",
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            showDownloadProgressDialog(o.getData().getVersionPath());
+                        }
+                    }).show();
+        }else{
+            inputDialog.setNegativeButton("取消", null);
+            inputDialog.setPositiveButton("确定",
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            showDownloadProgressDialog(o.getData().getVersionPath());
+                        }
+                    }).show();
+        }
     }
 
     private void showDownloadProgressDialog(String path) {

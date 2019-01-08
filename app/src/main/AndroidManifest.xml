@@ -29,8 +29,9 @@
         </activity>
         <activity android:name=".DrawActivity"
             android:launchMode="singleInstance"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen"
             ></activity>
+
+        <activity android:name="com.zlin.translate.activity.SetActivity"></activity>
         <service android:name=".FullOrNotService" />
     </application>
 

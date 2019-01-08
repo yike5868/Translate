@@ -8,20 +8,28 @@ import java.util.List;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
+import android.support.annotation.ColorInt;
+import android.support.annotation.FloatRange;
+import android.support.annotation.IntRange;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.zlin.translate.activity.SetActivity;
 
 import me.wangyuwei.flipshare.FlipShareView;
 import me.wangyuwei.flipshare.ShareItem;
@@ -93,6 +101,8 @@ public class FloatWindowView extends LinearLayout implements View.OnTouchListene
     private float btn_02_height ;
     private float btn_02_wight;
 
+    private int view_height;
+
     /**
      *
      */
@@ -123,13 +133,20 @@ public class FloatWindowView extends LinearLayout implements View.OnTouchListene
     TextView btn_02;
     TextView tv_text;
     TextView  btn_menu;
+    Context context;
+    View layout_floatwindow;
+    View view_background;
+    RelativeLayout ll_main;
     public FloatWindowView(Context context) {
         super(context);
+        this.context = context;
         windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         LayoutInflater.from(context).inflate(R.layout.float_window_widget, this);
-        View view = findViewById(R.id.layout_floatwindow);
-        viewWidth = view.getLayoutParams().width;
-        viewHeight = view.getLayoutParams().height;
+        layout_floatwindow = findViewById(R.id.layout_floatwindow);
+        viewWidth = layout_floatwindow.getLayoutParams().width;
+        viewHeight = layout_floatwindow.getLayoutParams().height;
+        view_background = findViewById(R.id.vew_background);
+        ll_main= findViewById(R.id.ll_main);
         btn_01 = findViewById(R.id.btn_01);
         btn_02 = findViewById(R.id.btn_02);
         tv_text = findViewById(R.id.tv_text);
@@ -143,6 +160,17 @@ public class FloatWindowView extends LinearLayout implements View.OnTouchListene
                 btn_02_height = btn_02.getMeasuredHeight();
                 btn_02_wight = btn_02.getMeasuredWidth();
                 Log.e("测试 btn_01_height：", btn_01.getMeasuredHeight()+","+btn_01.getMeasuredWidth());
+            }
+        });
+
+        ll_main.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                view_height = ll_main.getMeasuredHeight();
+                RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)view_background.getLayoutParams();
+                layoutParams.height = viewHeight;
+                view_background.setLayoutParams(layoutParams);
+                view_background.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, view_height));
             }
         });
     }
@@ -266,13 +294,15 @@ public class FloatWindowView extends LinearLayout implements View.OnTouchListene
 //                .create();
 //        share.setOnFlipClickListener(flipClickListener);
 
-        new FlipShareView.Builder((Activity) getContext(), btn_01)
-                .addItem(new ShareItem("Facebook", Color.WHITE, 0xff43549C))
-                .addItem(new ShareItem("Wangyuwei", Color.WHITE, 0xff4999F0))
-                .addItem(new ShareItem("Wangyuweiwangyuwei", Color.WHITE, 0xffD9392D))
-                .addItem(new ShareItem("纯文字也可以", Color.WHITE, 0xff57708A))
-                .setAnimType(FlipShareView.TYPE_HORIZONTAL)
-                .create();
+//        new FlipShareView.Builder((Activity) getContext(), btn_01)
+//                .addItem(new ShareItem("Facebook", Color.WHITE, 0xff43549C))
+//                .addItem(new ShareItem("Wangyuwei", Color.WHITE, 0xff4999F0))
+//                .addItem(new ShareItem("Wangyuweiwangyuwei", Color.WHITE, 0xffD9392D))
+//                .addItem(new ShareItem("纯文字也可以", Color.WHITE, 0xff57708A))
+//                .setAnimType(FlipShareView.TYPE_HORIZONTAL)
+//                .create();
+        Intent intent = new Intent(context, SetActivity.class);
+        context.startActivity(intent);
     }
     /**
      * 用于获取状态栏的高度。
@@ -298,4 +328,27 @@ public class FloatWindowView extends LinearLayout implements View.OnTouchListene
         this.listString = listString;
         this.flipClickListener = flipClickListener;
     }
+
+    public void setTextColor(@ColorInt int color){
+        btn_01.setTextColor(color);
+        btn_02.setTextColor(color);
+        btn_menu.setTextColor(color);
+        tv_text.setTextColor(color);
+    }
+
+    public void setTextAlpha(@FloatRange(from=0.0, to=1.0) float alpha){
+        btn_01.setAlpha(alpha);
+        btn_02.setAlpha(alpha);
+        btn_menu.setAlpha(alpha);
+        tv_text.setAlpha(alpha);
+    }
+
+    public void setBackgroundColor(@ColorInt int color){
+        view_background.setBackgroundColor(color);
+    }
+
+    public void setBackgroundAlpha(@FloatRange(from=0.0, to=1.0) float alpha){
+        view_background.setAlpha(alpha);
+    }
+
 }

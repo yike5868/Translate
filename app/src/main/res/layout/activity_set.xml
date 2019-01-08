@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:orientation="vertical"
+    android:paddingLeft="20dp"
+    android:paddingRight="20dp"
+    android:paddingTop="20dp"
+    android:background="@color/white"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp">
+        <TextView
+            android:text="文字颜色"
+            android:lines="1"
+            android:layout_width="100dp"
+            android:layout_gravity="center"
+            android:textSize="16sp"
+            android:layout_height="wrap_content" />
+        <com.zlin.translate.views.ColorPickerView
+            android:id="@+id/cpv_text"
+            android:layout_width="50dp"
+            android:layout_height="20dp"
+            app:indicatorEnable="true"
+            android:layout_weight="1"
+            app:indicatorColor="#fff"
+            app:orientation="horizontal"
+            />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp">
+        <TextView
+            android:text="文字透明度"
+            android:lines="1"
+            android:textSize="16sp"
+            android:layout_width="100dp"
+            android:layout_gravity="center"
+            android:layout_height="wrap_content"/>
+        <android.support.v7.widget.AppCompatSeekBar
+            android:id="@+id/acsb_text"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            app:indicatorEnable="true"
+            android:layout_weight="1"
+            app:indicatorColor="#fff"
+            android:max="100"
+            android:min="0"
+            app:orientation="horizontal"
+            />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp">
+        <TextView
+            android:text="背景颜色"
+            android:lines="1"
+            android:textSize="16sp"
+            android:layout_width="100dp"
+            android:layout_gravity="center"
+            android:layout_height="wrap_content" />
+        <com.zlin.translate.views.ColorPickerView
+            android:id="@+id/cpv_background"
+            android:layout_width="50dp"
+            android:layout_height="20dp"
+            app:indicatorEnable="true"
+            android:layout_weight="1"
+            app:indicatorColor="#fff"
+            app:orientation="horizontal"
+            />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp">
+        <TextView
+            android:text="背景透明度"
+            android:lines="1"
+            android:textSize="16sp"
+            android:layout_width="100dp"
+            android:layout_gravity="center"
+            android:layout_height="wrap_content"/>
+        <android.support.v7.widget.AppCompatSeekBar
+            android:id="@+id/acsb_background"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            app:indicatorEnable="true"
+            android:layout_weight="1"
+            app:indicatorColor="#fff"
+            android:max="100"
+            android:min="0"
+            app:orientation="horizontal"
+            />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp">
+        <TextView
+            android:text="翻译商"
+            android:lines="1"
+            android:textSize="16sp"
+            android:layout_width="100dp"
+            android:layout_gravity="center"
+            android:layout_height="wrap_content"/>
+        <Spinner
+            android:id="@+id/spinner_service"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            />
+    </LinearLayout>
+
+    <Button
+        android:text="默认"
+        android:id="@+id/btn_yuan"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+</LinearLayout>
