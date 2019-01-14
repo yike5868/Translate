@@ -18,8 +18,9 @@ public class DrawRectangleView extends View {
     //  声明Paint对象
     private Paint mPaint = null;
     private int StrokeWidth = 5;
-    private Rect rect = new Rect(0,0,0,0);//手动绘制矩形
-    public DrawRectangleView(Context context){
+    private Rect rect = new Rect(0, 0, 0, 0);//手动绘制矩形
+
+    public DrawRectangleView(Context context) {
         super(context);
         //构建对象
         mPaint = new Paint();
@@ -28,12 +29,13 @@ public class DrawRectangleView extends View {
         //开启线程
         // new Thread(this).start();
     }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         //设置无锯齿
         mPaint.setAntiAlias(true);
-        canvas.drawARGB(50,255,227,0);
+        canvas.drawARGB(50, 255, 227, 0);
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setStrokeWidth(StrokeWidth);
 //        mPaint.setColor(Color.GREEN);
@@ -41,50 +43,51 @@ public class DrawRectangleView extends View {
         // 绘制绿色实心矩形
 //        canvas.drawRect(100, 200, 400, 200 + 400, mPaint);
         mPaint.setColor(Color.RED);
-        canvas.drawRect(rect,mPaint);
+        canvas.drawRect(rect, mPaint);
     }
+
     Rect old;
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        int x = (int)event.getX();
-        int y = (int)event.getY();
+        int x = (int) event.getX();
+        int y = (int) event.getY();
 
-        switch (event.getAction()){
+        switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                rect.right+=StrokeWidth;
-                rect.bottom+=StrokeWidth;
+                rect.right += StrokeWidth;
+                rect.bottom += StrokeWidth;
                 invalidate(rect);
                 rect.left = x;
                 rect.top = y;
-                rect.right =rect.left;
+                rect.right = rect.left;
                 rect.bottom = rect.top;
             case MotionEvent.ACTION_MOVE:
                 old =
-                        new Rect(rect.left,rect.top,rect.right+StrokeWidth,rect.bottom+StrokeWidth);
+                        new Rect(rect.left, rect.top, rect.right + StrokeWidth, rect.bottom + StrokeWidth);
                 rect.right = x;
                 rect.bottom = y;
-                old.union(x,y);
+                old.union(x, y);
                 invalidate(old);
                 break;
             case MotionEvent.ACTION_UP:
-                Log.e("xxxxxx",rect.left+"");
-                Log.e("yyyyyy",rect.top+"");
-                Log.e("width",rect.width()+"");
-                Log.e("height",rect.height()+"");
+                Log.e("xxxxxx", rect.left + "");
+                Log.e("yyyyyy", rect.top + "");
+                Log.e("width", rect.width() + "");
+                Log.e("height", rect.height() + "");
                 UserConfig.x = rect.left;
                 if(UserConfig.orientation== Configuration.ORIENTATION_PORTRAIT )
                     UserConfig.y = rect.top-UserConfig.titleHeight;
                 else
                     UserConfig.y = rect.top;
                 UserConfig.width = rect.width();
-                UserConfig.higth =rect.height();
+                UserConfig.higth = rect.height();
                 break;
             default:
                 break;
         }
         return true;//处理了触摸信息，消息不再传递
     }
-
 
 
 }

@@ -56,4 +56,13 @@ public class Constant {
      * 设置保存的数据
      */
     public static final String SET_SAVE_DATE = "setSaveDate";
+
+    /**
+     * 百度翻译
+     */
+    public static final int TYEP_BAIDU = 0;
+    /**
+     * GOOGLE 翻译
+     */
+    public static final int TYEP_GOOGLE = 1;
 }

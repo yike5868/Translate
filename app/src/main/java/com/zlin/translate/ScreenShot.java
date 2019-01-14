@@ -74,7 +74,8 @@ public class ScreenShot {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                beginCapture(activity, intent);
+                if(UserConfig.x>0)
+                    beginCapture(activity, intent);
             }
         }, 150);
     }

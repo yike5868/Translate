@@ -77,6 +77,9 @@ public class MyWindowManager {
                 }else{
                     windowParams.type = LayoutParams.TYPE_TOAST;
                 }
+                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+                    windowParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+
                 windowParams.format = PixelFormat.RGBA_8888;
                 windowParams.flags = LayoutParams.FLAG_NOT_TOUCH_MODAL
                         | LayoutParams.FLAG_NOT_FOCUSABLE;

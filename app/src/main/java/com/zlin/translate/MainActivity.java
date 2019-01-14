@@ -46,6 +46,7 @@ import com.zlin.tools.Url;
 import com.zlin.tools.baidu.TransApi;
 import com.zlin.tools.baidu.TranslateBaiduDTO;
 import com.zlin.translate.activity.SetActivity;
+import com.zlin.translate.model.GoogleTranslate;
 import com.zlin.translate.model.VersionDTO;
 import com.zlin.translate.netUtils.BaseCallBack;
 import com.zlin.translate.netUtils.BaseOkHttpClient;
@@ -66,7 +67,7 @@ import me.wangyuwei.flipshare.FlipShareView;
 import okhttp3.Call;
 
 public class MainActivity extends BaseActivity implements View.OnClickListener {
-    Button btn_show, btn_hide,btn_share,btn_menu;
+    Button btn_show, btn_hide, btn_share, btn_menu;
     TextView tv_hit;
     Intent permissintent;
     boolean showFloatWindow = true;
@@ -80,7 +81,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         if (Build.VERSION.SDK_INT >= 23) {
             if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
                     checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, Constant.PERMISSION_REQUEST_CODE);
+//                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, Constant.PERMISSION_REQUEST_CODE);
+                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+                intent.setData(Uri.parse("package:" + getPackageName()));
+                startActivityForResult(intent, Constant.PERMISSION_REQUEST_CODE);
             }
             if (!Settings.canDrawOverlays(this)) {
                 Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
@@ -134,12 +138,17 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                     break;
                 case ConstantHandler.MSG_TEXT:
                     String text = msg.obj.toString();
-                    MyWindowManager.setTranslateText(text);
+//                    MyWindowManager.setTranslateText(text);
                     Log.e("ocr 识别的文字", text);
                     if (Utils.isEmpty(text)) {
                         Toast.makeText(MainActivity.this, "识别失败!", Toast.LENGTH_SHORT).show();
                         return;
                     }
+//                    if(TranslateApp.getInstance().getSetModel().getTranslateType()==0){
+//                        Toast.makeText(MainActivity.this, "百度!", Toast.LENGTH_SHORT).show();
+//                    }else{
+//                        Toast.makeText(MainActivity.this, "google!", Toast.LENGTH_SHORT).show();
+//                    }
                     TranslateThread translateThread = new TranslateThread(text);
                     translateThread.start();
                     break;
@@ -228,7 +237,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             case Constant.PERMISSION_REQUEST_CODE:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     Log.i(Constant.TAG, "onRequestPermissionsResult: copy");
-                    FileUtils.copyToSD(getApplicationContext(), Constant.LANGUAGE_PATH, Constant.DEFAULT_LANGUAGE_NAME);
+//                    FileUtils.copyToSD(getApplicationContext(), Constant.LANGUAGE_PATH, Constant.DEFAULT_LANGUAGE_NAME);
                 }
                 break;
             default:
@@ -282,15 +291,66 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 myHandler.sendEmptyMessage(ConstantHandler.MSG_OCR_ERROR);
                 return;
             }
-            TransApi api = new TransApi();
-            String str = api.getTransResult(text, "auto", "zh");
-            Log.e("baidusdk", str);
-            TranslateBaiduDTO translateBaiduDTO = new Gson().fromJson(str, TranslateBaiduDTO.class);
-            Message message = myHandler.obtainMessage();
-            message.what = ConstantHandler.MSG_OCR_TEXT;
-            message.obj = translateBaiduDTO;
-            myHandler.sendMessage(message);
+
+            if (TranslateApp.getInstance().getSetModel().getTranslateType() == Constant.TYEP_BAIDU) {
+                baiduTranslate(text);
+            } else {
+                gooleTranslate(text);
+            }
+
         }
+    }
+
+    public void baiduTranslate(String text) {
+
+        TransApi api = new TransApi();
+        String str = api.getTransResult(text, "auto", "zh");
+        Log.e("baidusdk", str);
+        TranslateBaiduDTO translateBaiduDTO = new Gson().fromJson(str, TranslateBaiduDTO.class);
+        Message message = myHandler.obtainMessage();
+        message.what = ConstantHandler.MSG_OCR_TEXT;
+        message.obj = translateBaiduDTO;
+        myHandler.sendMessage(message);
+    }
+
+    public void gooleTranslate(String text) {
+//        TransApi api = new TransApi();
+//        String str = api.getTransResult(text, "auto", "zh");
+//        Log.e("baidusdk", str);
+//        TranslateBaiduDTO translateBaiduDTO = new Gson().fromJson(str, TranslateBaiduDTO.class);
+//        Message message = myHandler.obtainMessage();
+//        message.what = ConstantHandler.MSG_OCR_TEXT;
+//        message.obj = translateBaiduDTO;
+//        myHandler.sendMessage(message);
+
+        String url = Url.GOOGLE_TRANSLATE_URL + text;
+        BaseOkHttpClient.newBuilder()
+                .post()
+                .url(url)
+                .build()
+                .enqueue(new BaseCallBack<GoogleTranslate>() {
+                    @Override
+                    public void onSuccess(GoogleTranslate o) {
+                        StringBuffer values = new StringBuffer();
+                        for (GoogleTranslate.SentencesBean sb : o.getSentences()) {
+                            values.append(sb.getOrig() + ("\n"));
+                            values.append(sb.getTrans() + ("\n"));
+                        }
+                        Log.e("google",values.toString());
+                        MyWindowManager.setTranslateText(values.toString());
+//                        Toast.makeText(MainActivity.this, "成功：" + o, Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onError(int code) {
+                        Toast.makeText(MainActivity.this, "错误编码：" + code, Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onFailure(Call call, IOException e) {
+                        Toast.makeText(MainActivity.this, "失败：" + e.toString(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     /**
@@ -370,8 +430,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
             @Override
             public void onClickTranslate() {
-                if(!canTouch){
-                    Toast.makeText(getApplicationContext(),"请稍等正在努力翻译!",Toast.LENGTH_SHORT).show();
+                if (!canTouch) {
+                    Toast.makeText(getApplicationContext(), "请稍等正在努力翻译!", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 canTouch = false;
@@ -467,12 +527,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         UserConfig.orientation = mConfiguration.orientation; //获取屏幕方向
     }
 
-    /**
-     * 百度ocr 识别
-     */
-    public void baiduOCR(File file) {
-
-    }
 
     /**
      * 用明文ak，sk初始化
@@ -532,7 +586,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 .enqueue(new BaseCallBack<VersionDTO>() {
                     @Override
                     public void onSuccess(VersionDTO o) {
-                        if(Utils.getVerCode(MainActivity.this)<o.getData().getVersionCode()){
+                        if (Utils.getVerCode(MainActivity.this) < o.getData().getVersionCode()) {
                             showInputDialog(o);
 //                            showDownloadProgressDialog(o.getData().getVersionPath());
                         }
@@ -554,15 +608,15 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private void showInputDialog(final VersionDTO o) {
     /*@setView 装入一个EditView
      */
-    if(o == null||o.isHasErrors()){
-        return;
-    }
+        if (o == null || o.isHasErrors()) {
+            return;
+        }
         final TextView textView = new TextView(MainActivity.this);
         textView.setText(o.getData().getMessage());
         AlertDialog.Builder inputDialog =
                 new AlertDialog.Builder(MainActivity.this);
         inputDialog.setTitle("升级").setView(textView);
-        if(o.getData().isMust()) {
+        if (o.getData().isMust()) {
             inputDialog.setCancelable(false);
             inputDialog.setPositiveButton("确定",
                     new DialogInterface.OnClickListener() {
@@ -571,7 +625,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                             showDownloadProgressDialog(o.getData().getVersionPath());
                         }
                     }).show();
-        }else{
+        } else {
             inputDialog.setNegativeButton("取消", null);
             inputDialog.setPositiveButton("确定",
                     new DialogInterface.OnClickListener() {
@@ -630,7 +684,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                     dir.mkdirs();
                 }
 
-                String fileName =Constant.DOWNLOAD_PATH + name;
+                String fileName = Constant.DOWNLOAD_PATH + name;
                 file = new File(fileName);
                 if (!file.exists()) {
                     if (!file.getParentFile().exists()) {
@@ -695,15 +749,15 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         }
     }
 
-    public void deleteTemp(){
+    public void deleteTemp() {
         File file = new File(Constant.PIC_PATH);
-        if(!file.exists()){
+        if (!file.exists()) {
             file.mkdirs();
             return;
         }
         File[] files = file.listFiles();
-        for (File f:files){
-            if(f.exists()){
+        for (File f : files) {
+            if (f.exists()) {
                 f.delete();
             }
         }
@@ -715,21 +769,24 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         deleteTemp();
     }
 
-    public void shareApp(){
+    public void shareApp() {
         /** * 分享图片 */
         Bitmap bgimg0 = getImageFromAssetsFile("downloadpath.png");
         Intent share_intent = new Intent();
         share_intent.setAction(Intent.ACTION_SEND);//设置分享行为
         share_intent.setType("image/*");  //设置分享内容的类型
-        share_intent.putExtra(Intent.EXTRA_STREAM, saveBitmap(bgimg0,"img"));
+        share_intent.putExtra(Intent.EXTRA_STREAM, saveBitmap(bgimg0, "img"));
         //创建分享的Dialog
         share_intent = Intent.createChooser(share_intent, "驿客截屏翻译");
         startActivity(share_intent);
     }
-    /** * 将图片存到本地 */
+
+    /**
+     * 将图片存到本地
+     */
     private static Uri saveBitmap(Bitmap bm, String picName) {
         try {
-            String dir=Constant.DATAPATH+File.separator+picName+".jpg";
+            String dir = Constant.DATAPATH + File.separator + picName + ".jpg";
             File f = new File(dir);
             if (!f.exists()) {
                 f.getParentFile().mkdirs();
@@ -744,20 +801,24 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();    }
+            e.printStackTrace();
+        }
         return null;
     }
 
-    /** * 从Assets中读取图片 */
-    private Bitmap getImageFromAssetsFile(String fileName){
+    /**
+     * 从Assets中读取图片
+     */
+    private Bitmap getImageFromAssetsFile(String fileName) {
         Bitmap image = null;
         AssetManager am = getResources().getAssets();
         try {
-            InputStream is=am.open(fileName);
-            image=BitmapFactory.decodeStream(is);
+            InputStream is = am.open(fileName);
+            image = BitmapFactory.decodeStream(is);
             is.close();
         } catch (IOException e) {
-            e.printStackTrace();    }
+            e.printStackTrace();
+        }
         return image;
     }
 }
