@@ -16,12 +16,10 @@ import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -41,18 +39,18 @@ import com.baidu.ocr.sdk.model.Word;
 import com.baidu.ocr.sdk.model.WordSimple;
 import com.google.gson.Gson;
 import com.googlecode.tesseract.android.TessBaseAPI;
-import com.umeng.analytics.MobclickAgent;
 import com.zlin.tools.Url;
 import com.zlin.tools.baidu.TransApi;
 import com.zlin.tools.baidu.TranslateBaiduDTO;
+import com.zlin.translate.activity.CameraSurfaceViewActivity;
+import com.zlin.translate.activity.PermissionsActivity;
 import com.zlin.translate.activity.SetActivity;
+import com.zlin.translate.activity.TakeCarmeraActivity;
 import com.zlin.translate.model.GoogleTranslate;
 import com.zlin.translate.model.VersionDTO;
 import com.zlin.translate.netUtils.BaseCallBack;
 import com.zlin.translate.netUtils.BaseOkHttpClient;
-
-
-import org.w3c.dom.Text;
+import com.zlin.translate.utils.PermissionsChecker;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -67,32 +65,26 @@ import me.wangyuwei.flipshare.FlipShareView;
 import okhttp3.Call;
 
 public class MainActivity extends BaseActivity implements View.OnClickListener {
-    Button btn_show, btn_hide, btn_share, btn_menu;
+    Button btn_show, btn_cam,btn_hide, btn_share, btn_menu;
     TextView tv_hit;
     Intent permissintent;
     boolean showFloatWindow = true;
     boolean canTouch = true;
-
+    // 所需的全部权限
+    static final String[] PERMISSIONS = new String[]{
+            Manifest.permission.CAMERA,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+    private PermissionsChecker mPermissionsChecker; // 权限检测器
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
-        if (Build.VERSION.SDK_INT >= 23) {
-            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
-                    checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-//                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, Constant.PERMISSION_REQUEST_CODE);
-                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
-                intent.setData(Uri.parse("package:" + getPackageName()));
-                startActivityForResult(intent, Constant.PERMISSION_REQUEST_CODE);
-            }
-            if (!Settings.canDrawOverlays(this)) {
-                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivityForResult(intent, 1);
-            }
-        }
 
+        mPermissionsChecker = new PermissionsChecker(this);
         initAccessTokenWithAkSk();
         getTitleHeight();
         getVersion();
@@ -113,6 +105,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         btn_share = findViewById(R.id.btn_share);
         btn_menu = findViewById(R.id.btn_menu);
         tv_hit = findViewById(R.id.tv_hit);
+        btn_cam = findViewById(R.id.btn_cam);
+        btn_cam.setOnClickListener(this);
         btn_show.setOnClickListener(this);
         btn_hide.setOnClickListener(this);
         btn_share.setOnClickListener(this);
@@ -218,6 +212,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 showDis();
                 Intent intent1 = new Intent(MainActivity.this, SetActivity.class);
                 startActivity(intent1);
+                break;
+            case R.id.btn_cam:
+                Intent intent2 = new Intent(MainActivity.this, TakeCarmeraActivity.class);
+                startActivity(intent2);
                 break;
 
         }
@@ -403,6 +401,14 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             requestCapturePermission();
 
         getOrientation();
+        // 缺少权限时, 进入权限配置页面
+        if (mPermissionsChecker.lacksPermissions(PERMISSIONS)) {
+            startPermissionsActivity();
+        }
+    }
+
+    private void startPermissionsActivity() {
+        PermissionsActivity.startActivityForResult(this, REQUEST_CODE, PERMISSIONS);
     }
 
     private static final int REQUEST_CODE = 1;

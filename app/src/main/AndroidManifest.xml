@@ -8,6 +8,11 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <!-- 相机权限 -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FLASHLIGHT" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -33,6 +38,9 @@
         </activity>
 
         <activity android:name="com.zlin.translate.activity.SetActivity"></activity>
+        <activity android:name=".activity.CameraSurfaceViewActivity"/>
+        <activity android:name=".activity.TakeCarmeraActivity"/>
+        <activity android:name=".activity.PermissionsActivity"/>
         <service android:name=".FullOrNotService" />
     </application>
 

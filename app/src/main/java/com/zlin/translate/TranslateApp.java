@@ -18,7 +18,7 @@ public class TranslateApp extends Application {
     private static TranslateApp mInstance = null;
 
     private static SetModel setModel = null;
-
+    public static Context sContext;
     public static TranslateApp getInstance() {
         return mInstance;
     }
@@ -26,6 +26,7 @@ public class TranslateApp extends Application {
     public void onCreate() {
         super.onCreate();
         mInstance = this;
+        sContext = getApplicationContext();
         CrashHandler.getInstance().init(this);
         UMConfigure.init(this, "5c2db7acb465f5d63e000079", "Ten", UMConfigure.DEVICE_TYPE_PHONE, null);
     }
