@@ -345,7 +345,7 @@ public class FloatWindowView extends LinearLayout implements View.OnTouchListene
         return statusBarHeight;
     }
 
-    void setonMenu(List<String> listString,FlipShareView.OnFlipClickListener flipClickListener){
+    public void setonMenu(List<String> listString,FlipShareView.OnFlipClickListener flipClickListener){
         this.listString = listString;
         this.flipClickListener = flipClickListener;
     }

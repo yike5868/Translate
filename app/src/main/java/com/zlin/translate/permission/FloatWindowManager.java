@@ -13,6 +13,8 @@ import android.graphics.Point;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
+import android.support.annotation.ColorInt;
+import android.support.annotation.FloatRange;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.WindowManager;
@@ -27,6 +29,9 @@ import com.zlin.translate.permission.rom.RomUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.List;
+
+import me.wangyuwei.flipshare.FlipShareView;
 
 /**
  * Description:
@@ -362,5 +367,37 @@ public class FloatWindowManager {
     private int dp2px(Context context, float dp){
         final float scale = context.getResources().getDisplayMetrics().density;
         return (int) (dp * scale + 0.5f);
+    }
+
+    /**
+     * 设置ocr 及翻译文字
+     */
+    public  void setTranslateText(String text){
+        if(floatWindow != null){
+            floatWindow.setTranslateText(text);
+        }
+    }
+    /**
+     * 设置ocr 及翻译文字
+     */
+    public  void setMenu(List<String> listString, FlipShareView.OnFlipClickListener flipClickListener){
+        if(floatWindow!=null)
+            floatWindow.setonMenu(listString,flipClickListener);
+    }
+
+    public static void setTextColor(@ColorInt int color){
+        floatWindow.setTextColor(color);
+    }
+
+    public static void setTextAlpha(@FloatRange(from=0.0, to=1.0) float alpha){
+        floatWindow.setTextAlpha(alpha);
+    }
+
+    public static void setBackgroundColor(@ColorInt int color){
+        floatWindow.setBackgroundColor(color);
+    }
+
+    public static void setBackgroundAlpha(@FloatRange(from=0,to=1.0) float alpha){
+        floatWindow.setBackgroundAlpha(alpha);
     }
 }

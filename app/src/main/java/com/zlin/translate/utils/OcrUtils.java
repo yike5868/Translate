@@ -23,37 +23,18 @@ import java.io.File;
 
 public class OcrUtils {
 
-    /**
-     * ocr线程
-     */
-//    class OcrThread implements Runnable {
-//        File file;
-//        Bitmap bitmap;
-//
-//        public OcrThread(File file) {
-//            this.file = file;
-//        }
-//
-//        public OcrThread(Bitmap bitmap) {
-//            this.bitmap = bitmap;
-//        }
-//
-//        @Override
-//        public void run() {
-//            String text;
-//            if (file != null) {
-//                text = ocr(file);
-//                recGeneral(file);
-//            } else
-//                text = ocr(bitmap);
-//            Message message = myHandler.obtainMessage();
-//            message.what = ConstantHandler.MSG_TEXT;
-//            message.obj = text;
-//            myHandler.sendMessage(message);
-//        }
-//    }
-//
-    public static void recGeneral(Context context, File file,final Handler myHandler) {
+    private OcrUtils(){
+
+    }
+    private static class OcrUtilsHolder{
+        private final static OcrUtils instance=new OcrUtils();
+    }
+    public static OcrUtils getInstance(){
+        return OcrUtilsHolder.instance;
+    }
+
+
+    public void recGeneral(Context context, File file,final Handler myHandler) {
         GeneralParams param = new GeneralParams();
         param.setDetectDirection(true);
         param.setImageFile(file);

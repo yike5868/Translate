@@ -54,6 +54,7 @@ import com.zlin.translate.permission.FloatWindowManager;
 import com.zlin.translate.utils.OcrUtils;
 import com.zlin.translate.utils.PermissionsChecker;
 import com.zlin.translate.utils.ToastUtil;
+import com.zlin.translate.utils.TranslateUtils;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -64,11 +65,10 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import me.wangyuwei.flipshare.FlipShareView;
 import okhttp3.Call;
 
 public class MainActivity extends BaseActivity implements View.OnClickListener {
-    Button btn_show, btn_cam,btn_hide, btn_share, btn_menu;
+    Button btn_show, btn_cam, btn_hide, btn_share, btn_menu;
     TextView tv_hit;
     Intent permissintent;
     boolean showFloatWindow = true;
@@ -81,6 +81,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
     private PermissionsChecker mPermissionsChecker; // 权限检测器
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -104,7 +105,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         initAccessTokenWithAkSk();
         getTitleHeight();
         getVersion();
-//        FileUtils.copyToSD(getApplicationContext(), Constant.LANGUAGE_PATH, Constant.DEFAULT_LANGUAGE_NAME);
     }
 
 
@@ -137,24 +137,17 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 //                    addThread(new ShotScreenThread());
                     break;
                 case ConstantHandler.MSG_TRANSLATE:
-                        File file = (File) msg.obj;
-                        OcrUtils.recGeneral(getApplicationContext(),file,myHandler);
+                    File file = (File) msg.obj;
+                    OcrUtils.getInstance().recGeneral(getApplicationContext(), file, myHandler);
                     break;
                 case ConstantHandler.MSG_TEXT:
                     String text = msg.obj.toString();
-//                    MyWindowManager.setTranslateText(text);
                     Log.e("ocr 识别的文字", text);
                     if (Utils.isEmpty(text)) {
                         Toast.makeText(MainActivity.this, "识别失败!", Toast.LENGTH_SHORT).show();
                         return;
                     }
-//                    if(TranslateApp.getInstance().getSetModel().getTranslateType()==0){
-//                        Toast.makeText(MainActivity.this, "百度!", Toast.LENGTH_SHORT).show();
-//                    }else{
-//                        Toast.makeText(MainActivity.this, "google!", Toast.LENGTH_SHORT).show();
-//                    }
-                    TranslateThread translateThread = new TranslateThread(text);
-                    translateThread.start();
+                    TranslateUtils.getInstance().translate(text, myHandler, MainActivity.this);
                     break;
                 case ConstantHandler.MSG_OCR_ERROR:
                     Toast.makeText(MainActivity.this, "识别失败!", Toast.LENGTH_SHORT).show();
@@ -164,21 +157,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                         Toast.makeText(MainActivity.this, "识别失败！", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    TranslateBaiduDTO translateBaiduDTO = (TranslateBaiduDTO) msg.obj;
-                    if (translateBaiduDTO.getError_msg() != null) {
-                        Toast.makeText(MainActivity.this, translateBaiduDTO.getError_msg(), Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    String baiduStr = "";
-                    for (TranslateBaiduDTO.TransResultBean bean : translateBaiduDTO.getTrans_result()) {
-                        baiduStr += bean.getSrc() + "\n";
-                        baiduStr += bean.getDst() + "\n";
-                    }
-                    MyWindowManager.setTranslateText(baiduStr);
+                    FloatWindowManager.getInstance().setTranslateText(msg.obj.toString());
                     break;
-                    case ConstantHandler.MSG_PERMISSION_DENIED:
-                        ToastUtil.makeText("权限获取失败，请开启浮窗权限");
-                        break;
+
+                case ConstantHandler.MSG_PERMISSION_DENIED:
+                    ToastUtil.makeText("权限获取失败，请开启浮窗权限");
+                    break;
             }
             super.handleMessage(msg);
         }
@@ -192,7 +176,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 //                postSubmit();
                 break;
             case R.id.btn_hide:
-                showSuspensionView();
                 break;
             case R.id.btn_draw:
                 Intent intent = new Intent(MainActivity.this, DrawActivity.class);
@@ -214,115 +197,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         }
     }
 
-    /**
-     * 请求到权限后在这里复制识别库
-     *
-     * @param requestCode
-     * @param permissions
-     * @param grantResults
-     */
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        Log.i(Constant.TAG, "onRequestPermissionsResult: " + grantResults[0]);
-        switch (requestCode) {
-            case Constant.PERMISSION_REQUEST_CODE:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Log.i(Constant.TAG, "onRequestPermissionsResult: copy");
-//                    FileUtils.copyToSD(getApplicationContext(), Constant.LANGUAGE_PATH, Constant.DEFAULT_LANGUAGE_NAME);
-                }
-                break;
-            default:
-                break;
-        }
-    }
-
-
-
-    /**
-     * 翻译线程
-     */
-    class TranslateThread extends Thread {
-        String text;
-
-        TranslateThread(String text) {
-            this.text = text;
-        }
-
-        @Override
-        public void run() {
-            if (text == null) {
-                myHandler.sendEmptyMessage(ConstantHandler.MSG_OCR_ERROR);
-                return;
-            }
-
-            if (TranslateApp.getInstance().getSetModel().getTranslateType() == Constant.TYEP_BAIDU) {
-                baiduTranslate(text);
-            } else {
-                gooleTranslate(text);
-            }
-
-        }
-    }
-
-    public void baiduTranslate(String text) {
-
-        TransApi api = new TransApi();
-        String str = api.getTransResult(text, "auto", "zh");
-        Log.e("baidusdk", str);
-        TranslateBaiduDTO translateBaiduDTO = new Gson().fromJson(str, TranslateBaiduDTO.class);
-        Message message = myHandler.obtainMessage();
-        message.what = ConstantHandler.MSG_OCR_TEXT;
-        message.obj = translateBaiduDTO;
-        myHandler.sendMessage(message);
-    }
-
-    public void gooleTranslate(String text) {
-//        TransApi api = new TransApi();
-//        String str = api.getTransResult(text, "auto", "zh");
-//        Log.e("baidusdk", str);
-//        TranslateBaiduDTO translateBaiduDTO = new Gson().fromJson(str, TranslateBaiduDTO.class);
-//        Message message = myHandler.obtainMessage();
-//        message.what = ConstantHandler.MSG_OCR_TEXT;
-//        message.obj = translateBaiduDTO;
-//        myHandler.sendMessage(message);
-
-        String url = Url.GOOGLE_TRANSLATE_URL + text;
-        BaseOkHttpClient.newBuilder()
-                .post()
-                .url(url)
-                .build()
-                .enqueue(new BaseCallBack<GoogleTranslate>() {
-                    @Override
-                    public void onSuccess(GoogleTranslate o) {
-                        StringBuffer values = new StringBuffer();
-                        for (GoogleTranslate.SentencesBean sb : o.getSentences()) {
-                            values.append(sb.getOrig() + ("\n"));
-                            values.append(sb.getTrans() + ("\n"));
-                        }
-                        Log.e("google",values.toString());
-                        MyWindowManager.setTranslateText(values.toString());
-//                        Toast.makeText(MainActivity.this, "成功：" + o, Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onError(int code) {
-                        Toast.makeText(MainActivity.this, "错误编码：" + code, Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onFailure(Call call, IOException e) {
-                        Toast.makeText(MainActivity.this, "失败：" + e.toString(), Toast.LENGTH_SHORT).show();
-                    }
-                });
-    }
-
-    /**
-     * 线程池管理线程
-     */
-
-    public void addThread(Runnable runnable) {
-        ThreadPoolProxyFactory.getNormalThreadPoolProxy().execute(runnable);
-    }
 
     MediaProjectionManager mediaProjectionManager;
     int width;
@@ -405,7 +279,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 }
                 canTouch = false;
                 getOrientation();
-                if (UserConfig.higth == null||UserConfig.higth == 0 || UserConfig.width == 0) {
+                if (UserConfig.higth == null || UserConfig.higth == 0 || UserConfig.width == 0) {
                     Intent intent = new Intent(MainActivity.this, DrawActivity.class);
                     startActivity(intent);
                     canTouch = true;
@@ -428,66 +302,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         FloatWindowManager.getInstance().applyOrShowFloatWindow(MainActivity.this);
         // 显示悬浮按钮
 
-    }
-
-    /**
-     * 请求用户给予悬浮窗的权限
-     */
-    public void requestPermission() {
-        if (!MyWindowManager.isFloatWindowOpAllowed(this)) {//已经开启
-//            showNoFloatWindowDialog(HomeActivity.this, "悬浮窗", permissionDesc, "取消", "去设置");
-        } else {
-            showSuspensionView();
-        }
-    }
-
-    /**
-     * 显示悬浮窗
-     */
-    private void showSuspensionView() {
-        if (showFloatWindow) {
-            // 如果当前悬浮窗没有显示，则显示悬浮窗；否则更新悬浮窗；
-            if (!MyWindowManager.isWindowShowing()) {
-                myHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            MyWindowManager.createWindow(MainActivity.this, showFloatWindow);
-                            MyWindowManager.setMenu(null, new FlipShareView.OnFlipClickListener() {
-                                @Override
-                                public void onItemClick(int position) {
-//                                Toast.makeText(getApplicationContext(), "adadfasdf", Toast.LENGTH_SHORT).show();
-                                }
-
-                                @Override
-                                public void dismiss() {
-
-                                }
-                            });
-                        }catch(Exception e){
-                            Message message = myHandler.obtainMessage();
-                            message.obj = ConstantHandler.MSG_PERMISSION_DENIED;
-                            myHandler.sendMessage(message);
-                        }
-                    }
-                });
-            } else {
-                myHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        MyWindowManager.updateFloatWindow(showFloatWindow);
-                    }
-                });
-            }
-        } else {
-            myHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (MyWindowManager.isWindowShowing())
-                        MyWindowManager.removeWindow(getApplicationContext(), showFloatWindow);
-                }
-            });
-        }
     }
 
     /**
@@ -517,7 +331,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             }
         }, getApplicationContext(), "6MFb1zdawaRITvVL6B51pAG9", "sQrhacKroa24bpYjaaGKaY4YpWGKb5rA");
     }
-
 
 
     /**
@@ -765,20 +578,5 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             e.printStackTrace();
         }
         return image;
-    }
-
-    private void requestSettingCanDrawOverlays() {
-        Toast.makeText(MainActivity.this, "请打开显示悬浮窗开关!", Toast.LENGTH_LONG).show();
-        int sdkInt = Build.VERSION.SDK_INT;
-        if (sdkInt >= Build.VERSION_CODES.O) {//8.0以上
-            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
-            startActivityForResult(intent, 3333);
-        } else if (sdkInt >= Build.VERSION_CODES.M) {//6.0-8.0
-            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
-            intent.setData(Uri.parse("package:" + getPackageName()));
-            startActivityForResult(intent, 3333);
-        } else {//4.4-6.0一下
-            //无需处理了
-        }
     }
 }
