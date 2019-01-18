@@ -30,79 +30,57 @@
 
 
     <!-- 底部按钮 -->
-    <RelativeLayout
+    <LinearLayout
         android:id="@+id/homecamera_bottom_relative"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="200dp"
         android:layout_alignParentBottom="true"
         android:layout_toEndOf="@+id/camera_delay_time_text"
         android:layout_toRightOf="@+id/camera_delay_time_text"
         android:background="#333333">
 
+        <TextView
+            android:id="@+id/tv_show"
+            android:layout_weight="1"
+            android:layout_width="10dp"
+            android:layout_height="match_parent" />
+
         <LinearLayout
-            android:layout_width="80dp"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_centerInParent="true"
-            android:layout_marginLeft="30dp"
-            android:orientation="vertical">
+            android:id="@+id/ll_right"
+            android:layout_alignParentRight="true"
+            android:layout_width="60dp"
+            android:orientation="vertical"
+            android:layout_height="match_parent">
+            <ImageView
+                android:id="@+id/flash_light"
+                android:layout_width="13dp"
+                android:layout_height="22dp"
+                android:layout_alignParentRight="true"
+                android:background="@null"
+                android:onClick="onClick"
+                android:layout_marginTop="20dp"
+                android:layout_gravity="center_horizontal"
+                android:src="@mipmap/icon_sgd_gb" />
 
             <ImageView
-                android:id="@+id/search"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:layout_gravity="center"
-                android:scaleType="centerCrop" />
-
-            <ImageView
-                android:id="@+id/search_img"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:layout_gravity="center"
-                android:visibility="gone" />
-
-            <TextView
-                android:id="@+id/search_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="2dp"
-                android:textColor="#ffffff"
-                android:textSize="11sp" />
-
+                android:id="@+id/camera_frontback"
+                android:layout_width="23dp"
+                android:layout_height="19dp"
+                android:onClick="onClick"
+                android:layout_marginTop="20dp"
+                android:layout_gravity="center_horizontal"
+                android:src="@mipmap/icon_xj" />
+            <Button
+                android:layout_marginTop="20dp"
+                android:id="@+id/action_button"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:background="@drawable/photo_quear"
+                android:clickable="true"
+                android:onClick="onClick" />
         </LinearLayout>
 
-        <Button
-            android:id="@+id/action_button"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:layout_centerInParent="true"
-            android:background="@drawable/photo_quear"
-            android:clickable="true"
-            android:onClick="onClick" />
-
-        <ImageView
-            android:id="@+id/flash_light"
-            android:layout_width="13dp"
-            android:layout_height="22dp"
-            android:layout_alignParentRight="true"
-            android:layout_centerInParent="true"
-            android:layout_marginRight="90dp"
-            android:background="@null"
-            android:onClick="onClick"
-            android:src="@mipmap/icon_sgd_gb" />
-
-
-        <ImageView
-            android:id="@+id/camera_frontback"
-            android:layout_width="23dp"
-            android:layout_height="19dp"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            android:layout_marginRight="34dp"
-            android:onClick="onClick"
-            android:src="@mipmap/icon_xj" />
-    </RelativeLayout>
+    </LinearLayout>
 
 
     <TextView
@@ -196,65 +174,22 @@
         </LinearLayout>
     </RelativeLayout>
 
-    <RelativeLayout
-        android:id="@+id/top_rl"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
+    <ImageView
+        android:id="@+id/camera_close"
+        android:layout_width="21dp"
+        android:layout_height="21dp"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/homeCustom_cover_top_view"
-        android:background="#333333">
-
-        <ImageView
-            android:id="@+id/camera_close"
-            android:layout_width="21dp"
-            android:layout_height="21dp"
-            android:layout_alignParentLeft="true"
-            android:layout_centerInParent="true"
-            android:layout_marginLeft="11dp"
-            android:onClick="onClick"
-            android:scaleType="centerCrop"
-            android:src="@mipmap/icon_order_shooting_close_small" />
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <RelativeLayout
-                android:layout_centerHorizontal="true"
-                android:id="@+id/basic_rl"
-                android:layout_width="wrap_content"
-                android:layout_height="50dp"
-                android:layout_marginRight="30dp">
-                <TextView
-                    android:layout_gravity="center_horizontal"
-                    android:textColor="@color/white"
-                    android:id="@+id/basic_dava"
-                    android:layout_centerHorizontal="true"
-                    android:layout_centerVertical="true"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="15dp"
-                    android:text="31-基本资料"/>
-
-
-                <View
-                    android:id="@+id/basic_view"
-                    android:layout_centerHorizontal="true"
-                    android:layout_alignParentBottom="true"
-                    android:layout_width="28dp"
-                    android:layout_height="2dp"
-                    android:background="@color/white"
-                    />
-            </RelativeLayout>
-        </RelativeLayout>
-
-    </RelativeLayout>
+        android:layout_marginLeft="11dp"
+        android:onClick="onClick"
+        android:scaleType="centerCrop"
+        android:src="@mipmap/icon_order_shooting_close_small" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/homecamera_bottom_relative"
-        android:layout_below="@+id/top_rl"
         android:orientation="vertical">
+
         <FrameLayout
             android:id="@+id/frame_layout"
             android:layout_width="match_parent"
@@ -268,15 +203,5 @@
         </FrameLayout>
 
     </LinearLayout>
-
-    <ImageView
-        android:id="@+id/snackbar_action_img"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="10dp"
-        android:scaleType="fitXY"
-        android:layout_above="@+id/homecamera_bottom_relative"
-        android:layout_below="@+id/top_rl"
-        android:src="@mipmap/dashline_1_dengji1_2_shuping" />
 
 </RelativeLayout>

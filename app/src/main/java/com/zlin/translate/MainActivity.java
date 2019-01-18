@@ -50,7 +50,10 @@ import com.zlin.translate.model.GoogleTranslate;
 import com.zlin.translate.model.VersionDTO;
 import com.zlin.translate.netUtils.BaseCallBack;
 import com.zlin.translate.netUtils.BaseOkHttpClient;
+import com.zlin.translate.permission.FloatWindowManager;
+import com.zlin.translate.utils.OcrUtils;
 import com.zlin.translate.utils.PermissionsChecker;
+import com.zlin.translate.utils.ToastUtil;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -83,7 +86,20 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
-
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+                    checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+//                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, Constant.PERMISSION_REQUEST_CODE);
+                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+                intent.setData(Uri.parse("package:" + getPackageName()));
+                startActivityForResult(intent, Constant.PERMISSION_REQUEST_CODE);
+            }
+            if (!Settings.canDrawOverlays(this)) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivityForResult(intent, 1);
+            }
+        }
         mPermissionsChecker = new PermissionsChecker(this);
         initAccessTokenWithAkSk();
         getTitleHeight();
@@ -121,14 +137,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 //                    addThread(new ShotScreenThread());
                     break;
                 case ConstantHandler.MSG_TRANSLATE:
-                    if (msg.obj instanceof File) {
                         File file = (File) msg.obj;
-                        recGeneral(file);
-//                        addThread(new OcrThread(file));
-                    } else {
-                        Bitmap bitmap = (Bitmap) msg.obj;
-                        addThread(new OcrThread(bitmap));
-                    }
+                        OcrUtils.recGeneral(getApplicationContext(),file,myHandler);
                     break;
                 case ConstantHandler.MSG_TEXT:
                     String text = msg.obj.toString();
@@ -166,30 +176,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                     }
                     MyWindowManager.setTranslateText(baiduStr);
                     break;
+                    case ConstantHandler.MSG_PERMISSION_DENIED:
+                        ToastUtil.makeText("权限获取失败，请开启浮窗权限");
+                        break;
             }
             super.handleMessage(msg);
         }
     };
-
-    public String ocr(Bitmap bitmap) {
-        TessBaseAPI tessBaseAPI = new TessBaseAPI();
-        tessBaseAPI.init(Constant.DATAPATH, "eng");//传入训练文件目录和训练文件
-        tessBaseAPI.setImage(bitmap);
-        String text = tessBaseAPI.getUTF8Text();
-        tessBaseAPI.end();
-        return text;
-
-    }
-
-    public String ocr(File file) {
-        TessBaseAPI tessBaseAPI = new TessBaseAPI();
-        tessBaseAPI.init(Constant.DATAPATH, "eng");//传入训练文件目录和训练文件
-        tessBaseAPI.setImage(file);
-        String text = tessBaseAPI.getUTF8Text();
-        tessBaseAPI.end();
-        return text;
-
-    }
 
     @Override
     public void onClick(View v) {
@@ -243,35 +236,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         }
     }
 
-    /**
-     * ocr线程
-     */
-    class OcrThread implements Runnable {
-        File file;
-        Bitmap bitmap;
 
-        public OcrThread(File file) {
-            this.file = file;
-        }
-
-        public OcrThread(Bitmap bitmap) {
-            this.bitmap = bitmap;
-        }
-
-        @Override
-        public void run() {
-            String text;
-            if (file != null) {
-                text = ocr(file);
-                recGeneral(file);
-            } else
-                text = ocr(bitmap);
-            Message message = myHandler.obtainMessage();
-            message.what = ConstantHandler.MSG_TEXT;
-            message.obj = text;
-            myHandler.sendMessage(message);
-        }
-    }
 
     /**
      * 翻译线程
@@ -429,10 +394,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
 
     public void showDis() {
-        // 显示悬浮按钮
-        MyWindowManager.setOnSuspensionViewClickListlistenerener(new FloatWindowView.OnSuspensionViewClickListener()
 
-        {
+        FloatWindowManager.getInstance().setOnSuspensionViewClickListlistenerener(new FloatWindowView.OnSuspensionViewClickListener() {
 
             @Override
             public void onClickTranslate() {
@@ -442,7 +405,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 }
                 canTouch = false;
                 getOrientation();
-                if (UserConfig.higth == null) {
+                if (UserConfig.higth == null||UserConfig.higth == 0 || UserConfig.width == 0) {
                     Intent intent = new Intent(MainActivity.this, DrawActivity.class);
                     startActivity(intent);
                     canTouch = true;
@@ -462,12 +425,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
         });
 
-        // 开启悬浮框前先请求权限
-        if ("Xiaomi".equals(Build.MANUFACTURER) || "Meizu".equals(Build.MANUFACTURER)) {// 小米手机
-            requestPermission();
-        } else {
-            showSuspensionView();
-        }
+        FloatWindowManager.getInstance().applyOrShowFloatWindow(MainActivity.this);
+        // 显示悬浮按钮
+
     }
 
     /**
@@ -491,19 +451,24 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 myHandler.post(new Runnable() {
                     @Override
                     public void run() {
-
-                        MyWindowManager.createWindow(MainActivity.this, showFloatWindow);
-                        MyWindowManager.setMenu(null, new FlipShareView.OnFlipClickListener() {
-                            @Override
-                            public void onItemClick(int position) {
+                        try {
+                            MyWindowManager.createWindow(MainActivity.this, showFloatWindow);
+                            MyWindowManager.setMenu(null, new FlipShareView.OnFlipClickListener() {
+                                @Override
+                                public void onItemClick(int position) {
 //                                Toast.makeText(getApplicationContext(), "adadfasdf", Toast.LENGTH_SHORT).show();
-                            }
+                                }
 
-                            @Override
-                            public void dismiss() {
+                                @Override
+                                public void dismiss() {
 
-                            }
-                        });
+                                }
+                            });
+                        }catch(Exception e){
+                            Message message = myHandler.obtainMessage();
+                            message.obj = ConstantHandler.MSG_PERMISSION_DENIED;
+                            myHandler.sendMessage(message);
+                        }
                     }
                 });
             } else {
@@ -553,32 +518,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         }, getApplicationContext(), "6MFb1zdawaRITvVL6B51pAG9", "sQrhacKroa24bpYjaaGKaY4YpWGKb5rA");
     }
 
-    public void recGeneral(File file) {
-        GeneralParams param = new GeneralParams();
-        param.setDetectDirection(true);
-        param.setImageFile(file);
-        OCR.getInstance(getApplicationContext()).recognizeGeneral(param, new OnResultListener<GeneralResult>() {
-            @Override
-            public void onResult(GeneralResult result) {
-                StringBuilder sb = new StringBuilder();
-                for (WordSimple wordSimple : result.getWordList()) {
-                    Word word = (Word) wordSimple;
-                    sb.append(word.getWords());
-                    sb.append("\n");
-                }
-                Log.e("aaaaaaaaa", sb.toString());
-                Message message = myHandler.obtainMessage();
-                message.what = ConstantHandler.MSG_TEXT;
-                message.obj = sb.toString();
-                myHandler.sendMessage(message);
-            }
-
-            @Override
-            public void onError(OCRError error) {
-                Log.e("bbbbbbb", error.getMessage());
-            }
-        });
-    }
 
 
     /**
@@ -826,5 +765,20 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             e.printStackTrace();
         }
         return image;
+    }
+
+    private void requestSettingCanDrawOverlays() {
+        Toast.makeText(MainActivity.this, "请打开显示悬浮窗开关!", Toast.LENGTH_LONG).show();
+        int sdkInt = Build.VERSION.SDK_INT;
+        if (sdkInt >= Build.VERSION_CODES.O) {//8.0以上
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+            startActivityForResult(intent, 3333);
+        } else if (sdkInt >= Build.VERSION_CODES.M) {//6.0-8.0
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+            intent.setData(Uri.parse("package:" + getPackageName()));
+            startActivityForResult(intent, 3333);
+        } else {//4.4-6.0一下
+            //无需处理了
+        }
     }
 }

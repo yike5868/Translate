@@ -185,33 +185,47 @@ public class FloatWindowView extends LinearLayout implements View.OnTouchListene
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 // 手指按下时记录必要数据,纵坐标的值都需要减去状态栏高度
+//                xInView = event.getX();
+//                yInView = event.getY();
+//                xDownInScreen = event.getRawX();
+//
+//                if (s.equalsIgnoreCase("vivo Y27") ) {
+//                    yDownInScreen = event.getRawY();
+//                }else{
+//                    yDownInScreen = event.getRawY() - getStatusBarHeight();
+//                }
+//
+//                xInScreen = event.getRawX();
+//                if (s.equalsIgnoreCase("vivo Y27")) {
+//                    yInScreen = event.getRawY();
+//                }else{
+//                    yInScreen = event.getRawY() - getStatusBarHeight();
+//                }
+
+
                 xInView = event.getX();
                 yInView = event.getY();
                 xDownInScreen = event.getRawX();
-
-                if (s.equalsIgnoreCase("vivo Y27") ) {
-                    yDownInScreen = event.getRawY();
-                }else{
-                    yDownInScreen = event.getRawY() - getStatusBarHeight();
-                }
-
+                yDownInScreen = event.getRawY();
                 xInScreen = event.getRawX();
-                if (s.equalsIgnoreCase("vivo Y27")) {
-                    yInScreen = event.getRawY();
-                }else{
-                    yInScreen = event.getRawY() - getStatusBarHeight();
-                }
+                yInScreen = event.getRawY();
 
                 break;
             case MotionEvent.ACTION_MOVE:
+//                xInScreen = event.getRawX();
+//                if (s.equalsIgnoreCase("vivo Y27")) {
+//                    yInScreen = event.getRawY();
+//                }else{
+//                    yInScreen = event.getRawY() - getStatusBarHeight();
+//                }
+
                 xInScreen = event.getRawX();
-                if (s.equalsIgnoreCase("vivo Y27")) {
-                    yInScreen = event.getRawY();
-                }else{
-                    yInScreen = event.getRawY() - getStatusBarHeight();
-                }
+                yInScreen = event.getRawY();
+                // 手指移动的时候更新小悬浮窗的位置
+                updateViewPosition();
+
                 // 手指移动的时候更新悬浮窗的位置
-                updateViewPosition((int) (xInScreen - xInView), (int) (yInScreen - yInView));
+//                updateViewPosition((int) (xInScreen - xInView), (int) (yInScreen - yInView));
                 break;
             case MotionEvent.ACTION_UP:
                 // 如果手指离开屏幕时xInScreen在xDownInScreen前后10像素的范围内，且yInScreen在yDownInScreen前后10像素的范围内，则视为触发了单击事件。
@@ -260,6 +274,13 @@ public class FloatWindowView extends LinearLayout implements View.OnTouchListene
     private void updateViewPosition(int x, int y) {
         mParams.x = x;
         mParams.y = y;
+        windowManager.updateViewLayout(this, mParams);
+    }
+
+    private void updateViewPosition() {
+        //增加移动误差
+        mParams.x = (int) (xInScreen - xInView);
+        mParams.y = (int) (yInScreen - yInView);
         windowManager.updateViewLayout(this, mParams);
     }
 

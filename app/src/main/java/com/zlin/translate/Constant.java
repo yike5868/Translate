@@ -34,6 +34,13 @@ public class Constant {
      * 图片保存目录
      */
     public static final String PIC_PATH = DATAPATH +File.separator+"screenShot";
+
+    /**
+     * 图片保存目录
+     */
+    public static final String PHOTO_PATH = DATAPATH +File.separator+"photo";
+
+
     /**
      * TessBaseAPI初始化测第二个参数，就是识别库的名字不要后缀名。
      */

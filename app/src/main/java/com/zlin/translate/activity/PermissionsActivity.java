@@ -45,20 +45,7 @@ public class PermissionsActivity extends AppCompatActivity {
         ActivityCompat.startActivityForResult(activity, intent, requestCode, null);
     }
 
-    private void requestSettingCanDrawOverlays() {
-        Toast.makeText(PermissionsActivity.this, "请打开显示悬浮窗开关!", Toast.LENGTH_LONG).show();
-        int sdkInt = Build.VERSION.SDK_INT;
-        if (sdkInt >= Build.VERSION_CODES.O) {//8.0以上
-            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
-            startActivityForResult(intent, 3333);
-        } else if (sdkInt >= Build.VERSION_CODES.M) {//6.0-8.0
-            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
-            intent.setData(Uri.parse("package:" + getPackageName()));
-            startActivityForResult(intent, 3333);
-        } else {//4.4-6.0一下
-            //无需处理了
-        }
-    }
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {

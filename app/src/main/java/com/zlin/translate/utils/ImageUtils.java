@@ -4,12 +4,19 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.media.MediaScannerConnection;
+import android.text.TextUtils;
+
+import com.zlin.translate.Constant;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+
+import top.zibin.luban.CompressionPredicate;
+import top.zibin.luban.Luban;
+import top.zibin.luban.OnCompressListener;
 
 /**
  * Created by zhanglin03 on 2019/1/16.
@@ -109,5 +116,22 @@ public class ImageUtils {
     }
     public static void updateResources(Context context, String path) {
         MediaScannerConnection.scanFile(context, new String[]{path}, null, null);
+    }
+
+    /**
+     * luban保存图片
+     */
+    public static void luBanSave(Context context,File file,OnCompressListener onCompressListener){
+        Luban.with(context)
+                .load(file)
+                .ignoreBy(100)
+                .setTargetDir(Constant.PHOTO_PATH)
+                .filter(new CompressionPredicate() {
+                    @Override
+                    public boolean apply(String path) {
+                        return !(TextUtils.isEmpty(path) || path.toLowerCase().endsWith(".gif"));
+                    }
+                })
+                .setCompressListener(onCompressListener).launch();
     }
 }

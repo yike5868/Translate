@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.hardware.Camera;
+import android.media.Image;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -24,12 +25,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.zlin.translate.BaseActivity;
+import com.zlin.translate.Constant;
 import com.zlin.translate.R;
 import com.zlin.translate.utils.CameraUtil;
 import com.zlin.translate.utils.ImageUtils;
 import com.zlin.translate.utils.ToastUtil;
 
 import java.io.File;
+
+import top.zibin.luban.OnCompressListener;
 
 /**
  * Created by zhanglin03 on 2019/1/16.
@@ -55,8 +59,6 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
     private ImageView flash_light;
     private TextView camera_delay_time_text;
     private ImageView camera_square;
-    private ImageView search;
-    private ImageView search_img;
     public final static int DETAIL_RESULT_UPLOD = 5;
     private int index;
     //底部高度 主要是计算切换正方形时的动画高度
@@ -71,8 +73,6 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
     private ImageView camera_frontback;
     private ImageView camera_close;
     private Button action_button;
-    RelativeLayout basic_rl;
-    TextView basic_dava;
     int isONe=1;
     boolean limit = true;
 
@@ -97,10 +97,6 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
     }
 
     private void initView() {
-        basic_rl=(RelativeLayout) findViewById(R.id.basic_rl);
-        basic_dava=(TextView) findViewById(R.id.basic_dava);
-
-
         surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
         surfaceView.post(new Runnable() {
             @Override
@@ -149,12 +145,6 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
         home_camera_cover_top_view.setAlpha(1);
         home_camera_cover_bottom_view.setAlpha(1);
 
-        //缩略图
-        search = (ImageView) findViewById(R.id.search);
-        search_img = (ImageView) findViewById(R.id.search_img);
-        search.setOnClickListener(this);
-        search_img.setOnClickListener(this);
-        //闪光灯
         flash_light = (ImageView) findViewById(R.id.flash_light);
         flash_light.setOnClickListener(this);
 
@@ -313,10 +303,6 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
                     delay_time = 0;
                     break;
             }
-        } else if (i == R.id.search) {
-
-        } else if (i == R.id.search_img) {
-
         }
     }
 
@@ -494,7 +480,9 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
 
     }
 
-
+    /**
+     * 保存图片
+     */
     private void captrue() {
         mCamera.takePicture(null, null, new Camera.PictureCallback() {
             @Override
@@ -503,12 +491,32 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
                 Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
                 Bitmap saveBitmap = CameraUtil.getInstance().setTakePicktrueOrientation(mCameraId, bitmap);
 
+                File file = new File(Constant.PHOTO_PATH);
+                if(!file.exists()){
+                    file.mkdirs();
+                }
                 //然后获取图片全路径
-                String img_path = getExternalFilesDir(Environment.DIRECTORY_DCIM).getPath() +
+                String img_path = Constant.PHOTO_PATH +
                         File.separator + System.currentTimeMillis() + ".jpg";
 
                 //需要chuan
                 ImageUtils.saveJPGE_After(context, saveBitmap, img_path, 100);
+                ImageUtils.luBanSave(context, new File(img_path), new OnCompressListener() {
+                    @Override
+                    public void onStart() {
+
+                    }
+
+                    @Override
+                    public void onSuccess(File file) {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+                });
 //                photoPath=img_path;
 
 //                image_path = img_path;

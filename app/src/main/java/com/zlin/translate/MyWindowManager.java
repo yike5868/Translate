@@ -75,7 +75,7 @@ public class MyWindowManager {
                     windowParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT
                             | WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY;
                 }else{
-                    windowParams.type = LayoutParams.TYPE_TOAST;
+                    windowParams.type = LayoutParams.TYPE_PHONE;
                 }
                 if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
                     windowParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
