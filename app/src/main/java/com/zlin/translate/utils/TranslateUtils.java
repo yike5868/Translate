@@ -3,7 +3,6 @@ package com.zlin.translate.utils;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
-import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -47,6 +46,11 @@ public class TranslateUtils {
             ToastUtil.makeText("识别失败！");
             return;
         }
+        if(text.indexOf(",")>=-1|| text.indexOf(".")>=-1) {
+            text = TextUtils.replaceBlank(text);
+            text = TextUtils.addBlank(text);
+        }
+
         if (TranslateApp.getInstance().getSetModel().getTranslateType() == Constant.TYEP_BAIDU) {
             baiduTranslate(text,handler);
         } else {
@@ -54,27 +58,39 @@ public class TranslateUtils {
         }
     }
 
+    class BaiduTranslateThread extends Thread{
+        String text;
+        Handler myHandler;
+        public BaiduTranslateThread(String text,Handler myHandler){
+            this.text = text;
+            this.myHandler = myHandler;
+        }
+        @Override
+        public void run() {
+            TransApi api = new TransApi();
+            String str = api.getTransResult(text, "auto", "zh");
+            TranslateBaiduDTO translateBaiduDTO = new Gson().fromJson(str, TranslateBaiduDTO.class);
+
+            if (translateBaiduDTO.getError_msg() != null) {
+                ToastUtil.makeText(translateBaiduDTO.getError_msg());
+                return;
+            }
+            String baiduStr = "";
+            for (TranslateBaiduDTO.TransResultBean bean : translateBaiduDTO.getTrans_result()) {
+                baiduStr += bean.getSrc() + "\n";
+                baiduStr += bean.getDst() + "\n";
+            }
+            Message message = myHandler.obtainMessage();
+            message.what = ConstantHandler.MSG_OCR_TEXT;
+            message.obj = baiduStr;
+            myHandler.sendMessage(message);
+            super.run();
+        }
+    }
 
     private void baiduTranslate(String text,Handler myHandler) {
-
-        TransApi api = new TransApi();
-        String str = api.getTransResult(text, "auto", "zh");
-        Log.e("baidusdk", str);
-        TranslateBaiduDTO translateBaiduDTO = new Gson().fromJson(str, TranslateBaiduDTO.class);
-
-        if (translateBaiduDTO.getError_msg() != null) {
-            ToastUtil.makeText(translateBaiduDTO.getError_msg());
-            return;
-        }
-        String baiduStr = "";
-        for (TranslateBaiduDTO.TransResultBean bean : translateBaiduDTO.getTrans_result()) {
-            baiduStr += bean.getSrc() + "\n";
-            baiduStr += bean.getDst() + "\n";
-        }
-        Message message = myHandler.obtainMessage();
-        message.what = ConstantHandler.MSG_OCR_TEXT;
-        message.obj = baiduStr;
-        myHandler.sendMessage(message);
+        BaiduTranslateThread baiduTranslateThread = new BaiduTranslateThread(text,myHandler);
+        baiduTranslateThread.start();
     }
 
     private void gooleTranslate(String text,final Handler myHandler) {

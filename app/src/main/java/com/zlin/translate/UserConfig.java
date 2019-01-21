@@ -13,4 +13,12 @@ public class UserConfig {
     public static Integer titleHeight;//状态栏高度
     public static Integer orientation;//屏幕方向
 
+//    public static Integer cut_x;    //拍照坐标x
+//    public static Integer cut_y;
+//    public static Integer cut_width;
+//    public static Integer cut_height;
+
+    public static double y_ratio;// y坐标比例
+    public static double height_ratio;// 高度坐标比例
+
 }

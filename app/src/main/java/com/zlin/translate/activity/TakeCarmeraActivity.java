@@ -10,12 +10,16 @@ import android.media.Image;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Message;
+import android.text.method.ScrollingMovementMethod;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -26,10 +30,17 @@ import android.widget.Toast;
 
 import com.zlin.translate.BaseActivity;
 import com.zlin.translate.Constant;
+import com.zlin.translate.ConstantHandler;
+import com.zlin.translate.MainActivity;
 import com.zlin.translate.R;
+import com.zlin.translate.UserConfig;
+import com.zlin.translate.Utils;
+import com.zlin.translate.permission.FloatWindowManager;
 import com.zlin.translate.utils.CameraUtil;
 import com.zlin.translate.utils.ImageUtils;
+import com.zlin.translate.utils.OcrUtils;
 import com.zlin.translate.utils.ToastUtil;
+import com.zlin.translate.utils.TranslateUtils;
 
 import java.io.File;
 
@@ -39,9 +50,9 @@ import top.zibin.luban.OnCompressListener;
  * Created by zhanglin03 on 2019/1/16.
  */
 
-public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.Callback, View.OnClickListener {
+public class TakeCarmeraActivity extends BaseActivity implements SurfaceHolder.Callback, View.OnClickListener {
 
-    private int isChong=0;// 是否重新拍摄 1是新拍  2 是重新拍摄  0是第一次
+    private int isChong = 0;// 是否重新拍摄 1是新拍  2 是重新拍摄  0是第一次
     private Camera mCamera;
     private SurfaceView surfaceView;
     private SurfaceHolder mHolder;
@@ -73,8 +84,23 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
     private ImageView camera_frontback;
     private ImageView camera_close;
     private Button action_button;
-    int isONe=1;
+    private TextView tv_show;
+    int isONe = 1;
     boolean limit = true;
+
+    private View view_cut;
+
+    double view_cut_height;
+    double view_cut_width;
+    double view_cut_x;
+    double view_cut_y;
+
+    double saf_cut_height;
+    double saf_cut_width;
+    double saf_cut_x;
+    double saf_cut_y;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,47 +115,70 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
         initData();
 
 
-
     }
 
     private void getIntents() {
-        limit = getIntent().getBooleanExtra("limit",true);
+        limit = getIntent().getBooleanExtra("limit", true);
     }
 
     private void initView() {
-        surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
+        view_cut = findViewById(R.id.view_cut);
+        ViewTreeObserver vto1 = view_cut.getViewTreeObserver();
+        vto1.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                view_cut.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                view_cut_height  = view_cut.getMeasuredHeight();
+                view_cut_width = view_cut.getMeasuredWidth();
+            }
+        });
+
+        tv_show = findViewById(R.id.tv_show);
+        tv_show.setMovementMethod(ScrollingMovementMethod.getInstance());
+        surfaceView = findViewById(R.id.surfaceView);
         surfaceView.post(new Runnable() {
             @Override
             public void run() {
-                ViewGroup.LayoutParams params = surfaceView.getLayoutParams();
-                int measuredWidth = surfaceView.getMeasuredWidth();
-                params.height = measuredWidth * 4 / 3;
-                surfaceView.setLayoutParams(params);
+//                ViewGroup.LayoutParams params = surfaceView.getLayoutParams();
+//                int measuredWidth = surfaceView.getMeasuredWidth();
+//                params.height = measuredWidth * 4 / 3;
+//                surfaceView.setLayoutParams(params);
             }
         });
-        action_button = (Button) findViewById(R.id.action_button);
+
+        ViewTreeObserver vto2 = surfaceView.getViewTreeObserver();
+        vto2.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                surfaceView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                saf_cut_height  = surfaceView.getMeasuredHeight();
+                saf_cut_width = surfaceView.getMeasuredWidth();
+            }
+        });
+
+        action_button = findViewById(R.id.action_button);
 
         action_button.setOnClickListener(this);
         mHolder = surfaceView.getHolder();
         mHolder.addCallback(this);
         //关闭相机界面按钮
-        camera_close = (ImageView) findViewById(R.id.camera_close);
+        camera_close = findViewById(R.id.camera_close);
         camera_close.setOnClickListener(this);
 
         //top 的view
-        home_custom_top_relative = (LinearLayout) findViewById(R.id.home_custom_top_relative);
+        home_custom_top_relative = findViewById(R.id.home_custom_top_relative);
         home_custom_top_relative.setAlpha(0.5f);
 
         //前后摄像头切换
-        camera_frontback = (ImageView) findViewById(R.id.camera_frontback);
+        camera_frontback = findViewById(R.id.camera_frontback);
         camera_frontback.setOnClickListener(this);
 
         //延迟拍照时间
-        camera_delay_time = (ImageView) findViewById(R.id.camera_delay_time);
+        camera_delay_time = findViewById(R.id.camera_delay_time);
         camera_delay_time.setOnClickListener(this);
 
         //正方形切换
-        camera_square = (ImageView) findViewById(R.id.camera_square);
+        camera_square =findViewById(R.id.camera_square);
         camera_square.setOnClickListener(this);
 
         //切换正方形时候的动画
@@ -145,10 +194,10 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
         home_camera_cover_top_view.setAlpha(1);
         home_camera_cover_bottom_view.setAlpha(1);
 
-        flash_light = (ImageView) findViewById(R.id.flash_light);
+        flash_light = findViewById(R.id.flash_light);
         flash_light.setOnClickListener(this);
 
-        camera_delay_time_text = (TextView) findViewById(R.id.camera_delay_time_text);
+        camera_delay_time_text = findViewById(R.id.camera_delay_time_text);
 
     }
 
@@ -235,8 +284,7 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
             if (is_camera_delay) {
                 Toast.makeText(TakeCarmeraActivity.this, "正在拍照请稍后...", Toast.LENGTH_SHORT).show();
                 return;
-            }
-            else{
+            } else {
                 TakeCarmeraActivity.this.finish();
             }
             //闪光灯
@@ -254,7 +302,7 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
             Camera.Parameters parameters;
             try {
                 parameters = mCamera.getParameters();
-            }catch(Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
                 return;
             }
@@ -379,19 +427,19 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
     @Override
     public void onResume() {
         super.onResume();
-        if (isONe!=1){
+        if (isONe != 1) {
             if (mCamera == null) {
 
                 mCamera = getCamera(mCameraId);
 
                 if (mHolder != null) {
-                    new Thread(){
+                    new Thread() {
                         @Override
                         public void run() {
                             super.run();
-                            try{
+                            try {
                                 Thread.sleep(50);
-                            }catch (Exception e){
+                            } catch (Exception e) {
 
                             }
                             startPreview(mCamera, mHolder);
@@ -403,9 +451,7 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
         }
 
 
-
     }
-
 
 
     @Override
@@ -413,7 +459,7 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
         super.onPause();
         try {
             releaseCamera();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             mCamera = null;
         }
@@ -452,7 +498,7 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
         if (camera == null) {
 
         } else {
-            try{
+            try {
 
 // setParameters 是针对魅族MX5。MX5通过Camera.open()拿到的Camera对象不为null
 
@@ -469,7 +515,7 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
                 CameraUtil.getInstance().setCameraDisplayOrientation(this, mCameraId, camera);
 //            camera.setDisplayOrientation(90);
                 camera.startPreview();
-            }catch(Exception e) {
+            } catch (Exception e) {
 
                 ToastUtil.makeText("请检查相机相关权限是否打开！");
 
@@ -480,6 +526,56 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
 
     }
 
+    Handler myHandler = new Handler() {
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case ConstantHandler.MSG_TRANSLATE:
+                    File file = (File) msg.obj;
+                    OcrUtils.getInstance().recGeneral(getApplicationContext(), file, myHandler);
+                    break;
+                case ConstantHandler.MSG_TEXT:
+                    String text = msg.obj.toString();
+                    Log.e("ocr 识别的文字", text);
+                    if (Utils.isEmpty(text)) {
+                        Toast.makeText(TakeCarmeraActivity.this, "识别失败!", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    TranslateUtils.getInstance().translate(text, myHandler, TakeCarmeraActivity.this);
+                    break;
+                case ConstantHandler.MSG_OCR_ERROR:
+                    Toast.makeText(TakeCarmeraActivity.this, "识别失败!", Toast.LENGTH_SHORT).show();
+                    break;
+                case ConstantHandler.MSG_OCR_TEXT:
+                    if (msg.obj == null) {
+                        Toast.makeText(TakeCarmeraActivity.this, "识别失败！", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    tv_show.setText(msg.obj.toString());
+//                    FloatWindowManager.getInstance().setTranslateText(msg.obj.toString());
+                    break;
+            }
+        }
+    };
+    /**
+     * 截图
+     */
+    private void cutPhoto(){
+        //TODO
+        int[] location = new  int[2] ;
+        view_cut.getLocationInWindow(location); //获取在当前窗口内的绝对坐标，含toolBar
+        view_cut.getLocationOnScreen(location); //获取在整个屏幕内的绝对坐标，含statusBar
+
+        view_cut_x = location[0];
+        view_cut_y = location[1];
+
+
+        int[] saf_location = new int[2];
+        surfaceView.getLocationInWindow(saf_location);//获取在当前窗口内的绝对坐标，含toolBar
+        surfaceView.getLocationOnScreen(saf_location);//获取在整个屏幕内的绝对坐标，含statusBar
+        saf_cut_x = saf_location[0];
+        saf_cut_y = saf_location[1];
+
+    }
     /**
      * 保存图片
      */
@@ -487,12 +583,15 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
         mCamera.takePicture(null, null, new Camera.PictureCallback() {
             @Override
             public void onPictureTaken(byte[] data, Camera camera) {
+                //获取截图信息
+                cutPhoto();
                 //将data 转换为位图 或者你也可以直接保存为文件使用 FileOutputStream
                 Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
                 Bitmap saveBitmap = CameraUtil.getInstance().setTakePicktrueOrientation(mCameraId, bitmap);
 
+
                 File file = new File(Constant.PHOTO_PATH);
-                if(!file.exists()){
+                if (!file.exists()) {
                     file.mkdirs();
                 }
                 //然后获取图片全路径
@@ -500,7 +599,25 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
                         File.separator + System.currentTimeMillis() + ".jpg";
 
                 //需要chuan
-                ImageUtils.saveJPGE_After(context, saveBitmap, img_path, 100);
+
+               double cut_y =(double)(saveBitmap.getHeight()*(view_cut_y/saf_cut_height));
+               double cut_height = (double)( saveBitmap.getHeight()*(view_cut_height/saf_cut_height));
+
+               Log.e("view_cut_y:saf_cut_hei",view_cut_y+"  "+saf_cut_height);
+                Log.e("view_cut_height",view_cut_height+"  "+saf_cut_height);
+                Log.e("saveBitmap.getWidth()",saveBitmap.getWidth()+" ");
+
+                Log.e("x y width height", 0+" "+ cut_y+"  "+saveBitmap.getWidth()+"  "+((int)cut_height));
+
+                //剪切图片
+                Bitmap bitmap1 = Bitmap.createBitmap(saveBitmap,//原图
+                        0,//图片裁剪横坐标开始位置
+                        ((int)cut_y),//图片裁剪纵坐标开始位置
+                        saveBitmap.getWidth(),//要裁剪的宽度
+                        ((int)cut_height));//要裁剪的高度
+
+
+                ImageUtils.saveJPGE_After(context, bitmap1, img_path, 100);
                 ImageUtils.luBanSave(context, new File(img_path), new OnCompressListener() {
                     @Override
                     public void onStart() {
@@ -509,12 +626,12 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
 
                     @Override
                     public void onSuccess(File file) {
-
+                        OcrUtils.getInstance().recGeneral(getApplicationContext(), file, myHandler);
                     }
 
                     @Override
                     public void onError(Throwable e) {
-
+                        ToastUtil.makeText("sorry,图片压缩出现问题！");
                     }
                 });
 //                photoPath=img_path;
@@ -586,15 +703,17 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
 
         }
     }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if(mCamera != null) {
+        if (mCamera != null) {
             mCamera.release();
             mCamera = null;
         }
 
     }
+
     @Override
     public void onBackPressed() {
         if (is_camera_delay) {
@@ -626,8 +745,8 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
         if (mCamera == null) {
             ToastUtil.makeText("请检查相机相关权限是否打开！");
 
-        }else {
-            try{
+        } else {
+            try {
 
 // setParameters 是针对魅族MX5。MX5通过Camera.open()拿到的Camera对象不为null
 
@@ -635,7 +754,7 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
 
                 mCamera.setParameters(mParameters);
                 startPreview(mCamera, holder);
-            }catch(Exception e) {
+            } catch (Exception e) {
 
                 ToastUtil.makeText("请检查相机相关权限是否打开！");
                 mCamera = null;
@@ -654,8 +773,8 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
         if (mCamera == null) {
             ToastUtil.makeText("请检查相机相关权限是否打开！");
 
-        }else {
-            try{
+        } else {
+            try {
 
 // setParameters 是针对魅族MX5。MX5通过Camera.open()拿到的Camera对象不为null
 
@@ -664,7 +783,7 @@ public class TakeCarmeraActivity  extends BaseActivity implements SurfaceHolder.
                 mCamera.setParameters(mParameters);
                 mCamera.stopPreview();
                 startPreview(mCamera, holder);
-            }catch(Exception e) {
+            } catch (Exception e) {
 
                 ToastUtil.makeText("请检查相机相关权限是否打开！");
 

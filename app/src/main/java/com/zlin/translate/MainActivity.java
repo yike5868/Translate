@@ -11,16 +11,14 @@ import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
@@ -29,24 +27,10 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.baidu.ocr.sdk.OCR;
-import com.baidu.ocr.sdk.OnResultListener;
-import com.baidu.ocr.sdk.exception.OCRError;
-import com.baidu.ocr.sdk.model.AccessToken;
-import com.baidu.ocr.sdk.model.GeneralParams;
-import com.baidu.ocr.sdk.model.GeneralResult;
-import com.baidu.ocr.sdk.model.Word;
-import com.baidu.ocr.sdk.model.WordSimple;
-import com.google.gson.Gson;
-import com.googlecode.tesseract.android.TessBaseAPI;
 import com.zlin.tools.Url;
-import com.zlin.tools.baidu.TransApi;
-import com.zlin.tools.baidu.TranslateBaiduDTO;
-import com.zlin.translate.activity.CameraSurfaceViewActivity;
 import com.zlin.translate.activity.PermissionsActivity;
 import com.zlin.translate.activity.SetActivity;
 import com.zlin.translate.activity.TakeCarmeraActivity;
-import com.zlin.translate.model.GoogleTranslate;
 import com.zlin.translate.model.VersionDTO;
 import com.zlin.translate.netUtils.BaseCallBack;
 import com.zlin.translate.netUtils.BaseOkHttpClient;
@@ -102,7 +86,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             }
         }
         mPermissionsChecker = new PermissionsChecker(this);
-        initAccessTokenWithAkSk();
+
         getTitleHeight();
         getVersion();
     }
@@ -311,27 +295,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         Configuration mConfiguration = this.getResources().getConfiguration(); //获取设置的配置信息
         UserConfig.orientation = mConfiguration.orientation; //获取屏幕方向
     }
-
-
-    /**
-     * 用明文ak，sk初始化
-     */
-    private void initAccessTokenWithAkSk() {
-        OCR.getInstance(this).initAccessTokenWithAkSk(new OnResultListener<AccessToken>() {
-            @Override
-            public void onResult(AccessToken result) {
-                String token = result.getAccessToken();
-                //hasGotToken = true;
-            }
-
-            @Override
-            public void onError(OCRError error) {
-                error.printStackTrace();
-                //alertText("AK，SK方式获取token失败", error.getMessage());
-            }
-        }, getApplicationContext(), "6MFb1zdawaRITvVL6B51pAG9", "sQrhacKroa24bpYjaaGKaY4YpWGKb5rA");
-    }
-
 
     /**
      * 获取版本信息
