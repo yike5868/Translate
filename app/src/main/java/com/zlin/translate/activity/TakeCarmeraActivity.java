@@ -113,8 +113,6 @@ public class TakeCarmeraActivity extends BaseActivity implements SurfaceHolder.C
         getIntents();
         initView();
         initData();
-
-
     }
 
     private void getIntents() {
