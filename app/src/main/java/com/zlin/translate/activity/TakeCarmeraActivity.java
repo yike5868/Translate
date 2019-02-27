@@ -265,7 +265,10 @@ public class TakeCarmeraActivity extends BaseActivity implements SurfaceHolder.C
                     CameraUtil.getInstance().turnLightOff(mCamera);
                     break;
             }
-            captrue();
+            if (mCamera == null)
+                onCaramResume();
+            else
+                captrue();
         } else if (i == R.id.camera_square) {
             if (index == 0) {
                 camera_square_0();
@@ -425,6 +428,10 @@ public class TakeCarmeraActivity extends BaseActivity implements SurfaceHolder.C
     @Override
     public void onResume() {
         super.onResume();
+        onCaramResume();
+    }
+
+    public void onCaramResume(){
         if (isONe != 1) {
             if (mCamera == null) {
 
@@ -447,8 +454,6 @@ public class TakeCarmeraActivity extends BaseActivity implements SurfaceHolder.C
                 }
             }
         }
-
-
     }
 
 
