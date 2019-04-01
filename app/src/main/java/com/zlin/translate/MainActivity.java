@@ -11,6 +11,8 @@ import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.PixelFormat;
+import android.graphics.Rect;
 import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -21,6 +23,7 @@ import android.os.Message;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -55,7 +58,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     Button btn_show, btn_cam, btn_hide, btn_share, btn_menu;
     TextView tv_hit;
     Intent permissintent;
-    boolean showFloatWindow = true;
     boolean canTouch = true;
     // 所需的全部权限
     static final String[] PERMISSIONS = new String[]{
@@ -87,11 +89,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         }
         mPermissionsChecker = new PermissionsChecker(this);
 
-        getTitleHeight();
+//        getTitleHeight();
         getVersion();
     }
 
-
+    /**
+     * 获取title高度， 修改为点击翻译动态
+     */
     public void getTitleHeight() {
         int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
         if (resourceId > 0) {
@@ -146,6 +150,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
                 case ConstantHandler.MSG_PERMISSION_DENIED:
                     ToastUtil.makeText("权限获取失败，请开启浮窗权限");
+                    break;
+                case ConstantHandler.MSG_GET_TITLE:
+                    int b = getStatusBarHeight();
+                    ToastUtil.makeText("getstatus b "+b );
+                    removeStatusBarHelperView();
+                    clickTranslate();
                     break;
             }
             super.handleMessage(msg);
@@ -257,6 +267,32 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
             @Override
             public void onClickTranslate() {
+                /**
+                 * 首先判断是否是全屏， 状态栏是否显示
+                 */
+                initStatusBarHelperView();
+                WaitThread w = new WaitThread();
+                w.start();
+            }
+
+            @Override
+            public void onClickCut() {
+
+                Intent intent = new Intent(MainActivity.this, DrawActivity.class);
+                startActivity(intent);
+            }
+
+        });
+
+        FloatWindowManager.getInstance().applyOrShowFloatWindow(MainActivity.this);
+        // 显示悬浮按钮
+
+    }
+
+    /**
+     * 开始截屏翻译
+     */
+    public void clickTranslate(){
                 if (!canTouch) {
                     Toast.makeText(getApplicationContext(), "请稍等正在努力翻译!", Toast.LENGTH_SHORT).show();
                     return;
@@ -273,20 +309,22 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                     ScreenShot.createImageReader();
                     ScreenShot.beginScreenShot(MainActivity.this, permissintent);
                 }
-            }
-
-            @Override
-            public void onClickCut() {
-                Intent intent = new Intent(MainActivity.this, DrawActivity.class);
-                startActivity(intent);
-            }
-
-        });
-
-        FloatWindowManager.getInstance().applyOrShowFloatWindow(MainActivity.this);
-        // 显示悬浮按钮
-
     }
+
+    class WaitThread extends  Thread{
+        @Override
+        public void run() {
+            super.run();
+            try {
+                sleep(200);
+                myHandler.sendEmptyMessage(ConstantHandler.MSG_GET_TITLE);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
 
     /**
      * @return 获取手机方向
@@ -542,4 +580,41 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         }
         return image;
     }
+
+    View mStatusBarHelperView;
+    private void initStatusBarHelperView() {
+        WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+        mStatusBarHelperView = new View(this);
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+        // 不可触摸，不可获得焦点
+        lp.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
+        // 放在左上角
+        lp.gravity = Gravity.LEFT | Gravity.TOP;
+        // 需要在manifest里申明android.permission.SYSTEM_ALERT_WINDOW权限
+        lp.type = WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY;
+        lp.format = PixelFormat.TRANSLUCENT;
+        wm.addView(mStatusBarHelperView, lp);
+    }
+
+    //使用完毕移除自定义View
+    private void removeStatusBarHelperView() {
+        WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+        wm.removeView(mStatusBarHelperView);
+        mStatusBarHelperView = null;
+    }
+
+    /**
+     *
+     * @return true 状态栏隐藏;false状态栏显示
+     */
+    private int getStatusBarHeight() {
+        int[] windowParams = new int[2];
+        int[] screenParams = new int[2];
+        mStatusBarHelperView.getLocationInWindow(windowParams);
+        mStatusBarHelperView.getLocationOnScreen(screenParams);
+        // 如果状态栏隐藏，返回0，如果状态栏显示则返回高度
+        return screenParams[1] - windowParams[1];
+    }
+
 }

@@ -11,4 +11,5 @@ public class ConstantHandler {
     public static final int MSG_OCR_ERROR = 4;//OCR扫描识别失败
     public static final int MSG_OCR_TEXT = 5;//OCR扫描识别成功
     public static final int MSG_PERMISSION_DENIED = 6;//权限获取失败
+    public static final int MSG_GET_TITLE = 7;//获取title
 }

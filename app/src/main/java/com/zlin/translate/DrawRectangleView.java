@@ -76,10 +76,11 @@ public class DrawRectangleView extends View {
                 Log.e("width", rect.width() + "");
                 Log.e("height", rect.height() + "");
                 UserConfig.x = rect.left;
-                if(UserConfig.orientation== Configuration.ORIENTATION_PORTRAIT )
+//                if(UserConfig.orientation== Configuration.ORIENTATION_PORTRAIT )
+                //因为 titleHeight 为动态获取的，根据状态栏是否显示 为0 或者状态栏高度
                     UserConfig.y = rect.top-UserConfig.titleHeight;
-                else
-                    UserConfig.y = rect.top;
+//                else
+//                    UserConfig.y = rect.top;
                 UserConfig.width = rect.width();
                 UserConfig.higth = rect.height();
                 break;

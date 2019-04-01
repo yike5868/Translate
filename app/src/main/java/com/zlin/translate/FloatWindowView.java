@@ -9,6 +9,7 @@ import java.util.List;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
@@ -30,6 +31,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.zlin.translate.activity.SetActivity;
+import com.zlin.translate.utils.ToastUtil;
 
 import me.wangyuwei.flipshare.FlipShareView;
 import me.wangyuwei.flipshare.ShareItem;
@@ -178,6 +180,18 @@ public class FloatWindowView extends LinearLayout implements View.OnTouchListene
     public void setTranslateText(String text){
         tv_text.setText(text);
     }
+
+//    @Override
+//    protected void onConfigurationChanged(Configuration newConfig) {
+//        super.onConfigurationChanged(newConfig);
+//        // Checks the orientation of the screen
+//        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+//            ToastUtil.makeText("横屏");
+//        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+//            ToastUtil.makeText("竖屏");
+//        }
+//
+//    }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {

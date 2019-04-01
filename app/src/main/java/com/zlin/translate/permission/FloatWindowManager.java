@@ -17,6 +17,7 @@ import android.support.annotation.ColorInt;
 import android.support.annotation.FloatRange;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.View;
 import android.view.WindowManager;
 
 import com.zlin.translate.FloatWindowView;
@@ -26,6 +27,7 @@ import com.zlin.translate.permission.rom.MiuiUtils;
 import com.zlin.translate.permission.rom.OppoUtils;
 import com.zlin.translate.permission.rom.QikuUtils;
 import com.zlin.translate.permission.rom.RomUtils;
+import com.zlin.translate.utils.ToastUtil;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -348,7 +350,9 @@ public class FloatWindowManager {
 //        floatView.setIsShowing(true);
         floatWindow.setOnSuspensionViewClickListener(myListener);
         floatWindow.setParams(mParams);
+
         windowManager.addView(floatWindow, mParams);
+
     }
 
     public void dismissWindow() {
